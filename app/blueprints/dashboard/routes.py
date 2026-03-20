@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from datetime import datetime, timezone
 from sqlalchemy import func
 from app.blueprints.dashboard import dashboard_bp
-from app.models import Order, OrderItem, Building, Product, DispatchBatch, DispatchBatchItem
+from app.models import Order, OrderItem, Building, Product, DispatchBatch, DispatchBatchItem, BuildingInventory
 from app.extensions import db
 from app.utils.decorators import superadmin_required
 
@@ -76,6 +76,10 @@ def index():
         Product.stock_actual <= Product.stock_minimo
     ).order_by(Product.stock_actual.asc()).all()
 
+    alertas_edificios = db.session.query(BuildingInventory).join(Product).filter(
+        BuildingInventory.quantity <= Product.stock_minimo
+    ).all()
+
     pedidos_por_edificio = db.session.query(
         Building.name,
         func.count(Order.id).label('total_pedidos')
@@ -108,6 +112,7 @@ def index():
         costo_despachado_mes=costo_despachado_mes,
         total_productos=total_productos,
         alertas_stock=alertas_stock,
+        alertas_edificios=alertas_edificios,
         chart_edificios_labels=chart_edificios_labels,
         chart_edificios_data=chart_edificios_data,
         chart_productos_labels=chart_productos_labels,

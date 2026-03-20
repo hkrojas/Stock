@@ -27,7 +27,7 @@
     <!-- List of Products to Pick -->
     <div class="bg-white shadow-lg shadow-black/5 border border-slate-200/80 rounded-2xl overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center bg-gradient-to-r from-slate-50 to-white">
-            <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Resumen a Extraer</span>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumen a Extraer</span>
             <span class="text-xs font-black text-[#00205B] bg-slate-200/50 px-3 py-1 rounded-full">{{ batch.items|length }} Ítems</span>
         </div>
         <ul class="divide-y divide-slate-100">
@@ -37,14 +37,14 @@
                         <p class="text-lg font-extrabold text-[#00205B] leading-tight">{{ item.product.name }}</p>
                         <p class="text-xs font-medium text-slate-500 mt-1.5 flex items-center gap-1.5">
                             Stock Actual: 
-                            <span class="font-bold px-1.5 py-0.5 rounded text-[11px] bg-slate-100 border {% if item.product.stock_actual < item.total_quantity %}text-rose-600 border-rose-200 bg-rose-50{% else %}text-slate-700 border-slate-200{% endif %}">
+                            <span class="font-bold px-1.5 py-0.5 rounded text-xs bg-slate-100 border {% if item.product.stock_actual < item.total_quantity %}text-rose-600 border-rose-200 bg-rose-50{% else %}text-slate-700 border-slate-200{% endif %}">
                                 {{ item.product.stock_actual }}
                             </span> 
                             {{ item.product.unit }}s
                         </p>
                     </div>
                     <div class="flex flex-col items-center justify-center bg-[#FAAC2A]/10 border border-[#FAAC2A]/20 rounded-xl px-5 py-3 min-w-[5rem] shadow-sm">
-                         <span class="text-[10px] font-black text-[#00205B]/60 uppercase tracking-widest leading-none mb-1.5">Req</span>
+                         <span class="text-xs font-bold text-[#00205B]/60 uppercase tracking-widest leading-none mb-1.5">Req</span>
                          <span class="text-2xl font-black text-[#00205B] leading-none">-{{ item.total_quantity }}</span>
                     </div>
                 </li>

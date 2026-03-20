@@ -91,9 +91,9 @@
                         <div>
                             <p class="text-sm font-extrabold text-[#00205B]">{{ upload.filename }}</p>
                             <div class="flex flex-wrap items-center gap-2 mt-1.5">
-                                <span class="text-[11px] font-medium text-slate-500">{{ upload.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">{{ upload.products_created }} nuevos</span>
-                                <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 border border-amber-200">{{ upload.products_updated }} actualizados</span>
+                                <span class="text-xs font-bold text-slate-500">{{ upload.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">{{ upload.products_created }} nuevos</span>
+                                <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 border border-amber-200">{{ upload.products_updated }} actualizados</span>
                             </div>
                         </div>
                     </div>
@@ -135,7 +135,7 @@
                         <div class="flex items-center space-x-2">
                             <p class="text-sm font-extrabold text-[#00205B] truncate">{{ product.name }}</p>
                             {% if product.sku %}
-                            <span class="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">{{ product.sku }}</span>
+                            <span class="text-xs font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">{{ product.sku }}</span>
                             {% endif %}
                         </div>
                         <p class="text-xs font-medium text-slate-500 truncate mt-1">{{ product.description or 'Sin descripción' }}</p>

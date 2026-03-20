@@ -38,7 +38,7 @@
                                     Enviado por {{ order.created_by.name or order.created_by.username }}
                                 </p>
                             </div>
-                            <span class="text-[10px] font-black px-2.5 py-1 rounded-md shrink-0 border tracking-wider
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-md shrink-0 border tracking-wider
                                 {% if order.status == 'submitted' %} bg-emerald-50 text-emerald-700 border-emerald-200
                                 {% else %} bg-amber-50 text-amber-700 border-amber-200 {% endif %}">
                                 {{ order.status | upper }}
@@ -47,7 +47,7 @@
 
                         <!-- Items preview -->
                         <div class="bg-slate-50/80 rounded-xl p-3 border border-slate-100">
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
                                 <span>Contenido del pedido</span>
                                 <span>{{ order.items|length }} Ítem{{ 's' if order.items|length != 1 }}</span>
                             </p>
@@ -84,33 +84,73 @@
         {% if orders %}
         <!-- Sticky bottom action bar (mobile) -->
         <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 z-40 lg:hidden flex gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-            <button type="button"
-                    onclick="const cbs = document.querySelectorAll('input[type=checkbox]'); const allChecked = Array.from(cbs).every(cb => cb.checked); cbs.forEach(cb => cb.checked = !allChecked);"
+            <button type="button" id="toggle-all-mobile"
                     class="flex flex-col items-center justify-center w-1/3 py-2 text-xs font-bold text-[#00205B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
                 <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 Todos
             </button>
-            <button type="submit"
-                    class="w-2/3 flex items-center justify-center gap-2 py-3 text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] rounded-xl shadow-lg shadow-black/10 active:scale-95 transition-all">
+            <button type="submit" id="submit-btn-mobile"
+                    class="w-2/3 flex items-center justify-center gap-2 py-3 text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] rounded-xl shadow-lg shadow-black/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                Generar Lote
+                <span id="submit-text-mobile">Generar Lote</span>
             </button>
         </div>
 
         <!-- Desktop action bar -->
         <div class="hidden lg:flex justify-end mt-8 gap-4 px-2">
-            <button type="button"
-                    onclick="const cbs = document.querySelectorAll('input[type=checkbox]'); const allChecked = Array.from(cbs).every(cb => cb.checked); cbs.forEach(cb => cb.checked = !allChecked);"
+            <button type="button" id="toggle-all-desktop"
                     class="px-6 py-3.5 text-sm font-extrabold text-[#00205B] bg-slate-100 hover:bg-slate-200 rounded-xl shadow-sm transition-colors border border-slate-200">
                 Seleccionar/Desmarcar Todos
             </button>
-            <button type="submit"
-                    class="px-8 py-3.5 text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] hover:bg-[#E5981D] rounded-xl shadow-lg shadow-black/10 active:scale-[.98] transition-all flex items-center gap-2">
+            <button type="submit" id="submit-btn-desktop"
+                    class="px-8 py-3.5 text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] hover:bg-[#E5981D] rounded-xl shadow-lg shadow-black/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                Agrupar y Generar Lote Operativo
+                <span id="submit-text-desktop">Agrupar y Generar Lote Operativo</span>
             </button>
         </div>
         {% endif %}
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const checkboxes = document.querySelectorAll('input[name="order_ids"]');
+    if (checkboxes.length === 0) return;
+    
+    const elements = [
+        { btn: document.getElementById('submit-btn-mobile'), text: document.getElementById('submit-text-mobile'), emptyText: 'Selecciona pedidos' },
+        { btn: document.getElementById('submit-btn-desktop'), text: document.getElementById('submit-text-desktop'), emptyText: 'Selecciona pedidos' }
+    ];
+
+    function updateCounters() {
+        const count = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const isDisabled = count === 0;
+        
+        elements.forEach(({ btn, text, emptyText }) => {
+            if (!btn || !text) return;
+            btn.disabled = isDisabled;
+            text.textContent = count === 0 ? emptyText : `Generar Lote con ${count} pedido${count === 1 ? '' : 's'}`;
+        });
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCounters));
+
+    const bindToggle = (id) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                checkboxes.forEach(cb => cb.checked = !allChecked);
+                updateCounters();
+            });
+        }
+    };
+
+    bindToggle('toggle-all-mobile');
+    bindToggle('toggle-all-desktop');
+
+    // Init UI 
+    updateCounters();
+});
+</script>
 {% endblock %}

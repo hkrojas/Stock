@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, abort
 from flask_login import current_user, login_required
 from app.blueprints.orders import orders_bp
-from app.models import User, Building, Product, Order, OrderItem
+from app.models import User, Building, Product, Order, OrderItem, BuildingInventory, ConsumptionLog
 from app.extensions import db
 from app.utils.decorators import admin_required
 
@@ -72,7 +72,14 @@ def order_detail(order_id):
     order = Order.query.get_or_404(order_id)
     _assert_order_ownership(order)
     products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
-    return render_template('orders/order_detail.html', order=order, products=products)
+    
+    critical_inventory = BuildingInventory.query.join(Product).filter(
+        BuildingInventory.building_id == order.building_id,
+        BuildingInventory.quantity <= Product.stock_minimo,
+        Product.is_active == True
+    ).all()
+
+    return render_template('orders/order_detail.html', order=order, products=products, critical_inventory=critical_inventory)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -191,3 +198,50 @@ def reopen_order(order_id):
     db.session.commit()
     flash('El pedido se ha reabierto. Ahora puedes modificar las cantidades o agregar más productos.', 'info')
     return redirect(url_for('orders.order_detail', order_id=order.id))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Local Inventory Phase 2
+# ─────────────────────────────────────────────────────────────────────────────
+@orders_bp.route('/my_inventory')
+@admin_required
+def my_inventory():
+    """View local building inventory for the current admin."""
+    if current_user.role == 'superadmin':
+        my_buildings = Building.query.all()
+    else:
+        my_buildings = current_user.assigned_buildings
+        
+    building_ids = [b.id for b in my_buildings]
+    
+    # Get inventory for these buildings, grouped
+    inventory = BuildingInventory.query.filter(BuildingInventory.building_id.in_(building_ids)).all()
+    
+    return render_template('orders/my_inventory.html', inventory=inventory)
+
+@orders_bp.route('/consume/<int:inventory_id>', methods=['POST'])
+@admin_required
+def consume_inventory(inventory_id):
+    """HTMX endpoint to report consumption of local inventory."""
+    inv = BuildingInventory.query.get_or_404(inventory_id)
+    
+    # IDOR Validation
+    if current_user.role != 'superadmin':
+        my_building_ids = {b.id for b in current_user.assigned_buildings}
+        if inv.building_id not in my_building_ids:
+            abort(403)
+            
+    if inv.quantity > 0:
+        inv.quantity -= 1
+        
+        log = ConsumptionLog(
+            building_id=inv.building_id,
+            product_id=inv.product_id,
+            reported_by_id=current_user.id,
+            quantity_consumed=1
+        )
+        db.session.add(log)
+        db.session.commit()
+        
+    return render_template('orders/partials/inventory_card.html', inv=inv)
+

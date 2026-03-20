@@ -26,7 +26,7 @@
             </div>
             <div>
                 <p class="text-3xl font-black text-[#00205B] leading-none">{{ total_pedidos_pendientes }}</p>
-                <p class="text-[11px] font-black uppercase tracking-widest text-slate-400 mt-2">Pedidos Pendientes</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Pedidos Pendientes</p>
             </div>
         </div>
 
@@ -40,7 +40,7 @@
             </div>
             <div>
                 <p class="text-3xl font-black text-[#00205B] leading-none">{{ total_edificios_activos }}</p>
-                <p class="text-[11px] font-black uppercase tracking-widest text-slate-400 mt-2">Edificios Activos</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Edificios Activos</p>
             </div>
         </div>
 
@@ -54,7 +54,7 @@
             </div>
             <div>
                 <p class="text-2xl sm:text-3xl font-black text-[#00205B] leading-none">S/ {{ "%.0f"|format(costo_despachado_mes) }}</p>
-                <p class="text-[11px] font-black uppercase tracking-widest text-slate-400 mt-2">Despachado (Mes)</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Despachado (Mes)</p>
             </div>
         </div>
 
@@ -68,7 +68,7 @@
             </div>
             <div>
                 <p class="text-3xl font-black text-[#00205B] leading-none">{{ total_productos }}</p>
-                <p class="text-[11px] font-black uppercase tracking-widest text-slate-400 mt-2">Catálogo</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Catálogo</p>
             </div>
         </div>
     </div>
@@ -86,7 +86,7 @@
                 </div>
                 <div>
                     <h3 class="text-[13px] font-extrabold text-[#00205B]">Pedidos por Edificio</h3>
-                    <p class="text-[11px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">Distribución de Solicitudes</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Distribución de Solicitudes</p>
                 </div>
             </div>
         </div>
@@ -109,13 +109,13 @@
                 </div>
                 <div>
                     <h3 class="text-[13px] font-extrabold text-[#00205B]">Top 5 Productos Más Solicitados</h3>
-                    <p class="text-[11px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">Acumulado Total de Pedidos</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Acumulado Total de Pedidos</p>
                 </div>
             </div>
         </div>
-        <div class="p-5 flex justify-center">
-            <div class="w-full max-w-xs">
-                <canvas id="chartProductos" height="260"></canvas>
+        <div class="p-5 flex justify-center w-full">
+            <div class="w-full relative h-[360px]">
+                <canvas id="chartProductos"></canvas>
             </div>
         </div>
     </div>
@@ -133,37 +133,68 @@
                 </div>
                 <div>
                     <h3 class="text-[13px] font-extrabold text-[#00205B]">Alertas de Stock Crítico</h3>
-                    <p class="text-[11px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">Por Debajo del Mínimo</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Por Debajo del Mínimo</p>
                 </div>
             </div>
-            {% if alertas_stock %}
-            <span class="text-xs font-black bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full border border-rose-200 shadow-sm">{{ alertas_stock|length }}</span>
+            {% if alertas_stock or alertas_edificios %}
+            <span class="text-xs font-black bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full border border-rose-200 shadow-sm">{{ (alertas_stock|length) + (alertas_edificios|length) }}</span>
             {% endif %}
         </div>
 
-        {% if alertas_stock %}
-        <ul class="divide-y divide-slate-100">
-            {% for product in alertas_stock %}
-            <li class="px-5 py-4 flex items-center gap-4 hover:bg-slate-50/70 transition-colors">
-                <img src="{{ product.imagen_url or '/static/img/default-product.png' }}"
-                     alt="{{ product.name }}"
-                     class="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0"
-                     onerror="this.src='https://via.placeholder.com/48?text=N/A'">
-                <div class="flex-grow min-w-0">
-                    <p class="text-[13px] font-extrabold text-[#00205B] truncate">{{ product.name }}</p>
-                    <p class="text-xs text-slate-400 font-medium">Mín: {{ product.stock_minimo }} {{ product.unit }}s</p>
-                </div>
-                <div class="shrink-0 text-right">
-                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[13px] shadow-sm
-                        {% if product.stock_actual <= 0 %}bg-rose-500 text-white shadow-rose-500/20{% elif product.stock_actual <= product.stock_minimo // 2 %}bg-rose-100 text-rose-700 border border-rose-200{% else %}bg-amber-100 text-amber-700 border border-amber-200{% endif %}">
-                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                        {{ product.stock_actual }}
+        {% if alertas_stock or alertas_edificios %}
+            {% if alertas_stock %}
+            <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Almacén Central</h4>
+            </div>
+            <ul class="divide-y divide-slate-100">
+                {% for product in alertas_stock %}
+                <li class="px-5 py-4 flex items-center gap-4 hover:bg-slate-50/70 transition-colors">
+                    <img src="{{ product.imagen_url or '/static/img/default-product.png' }}"
+                         alt="{{ product.name }}"
+                         class="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0"
+                         onerror="this.src='https://via.placeholder.com/48?text=N/A'">
+                    <div class="flex-grow min-w-0">
+                        <p class="text-[13px] font-extrabold text-[#00205B] truncate">{{ product.name }}</p>
+                        <p class="text-xs text-slate-400 font-medium">Mín: {{ product.stock_minimo }} {{ product.unit }}s</p>
                     </div>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase text-center mt-1">quedan</p>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
+                    <div class="shrink-0 text-right">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[13px] shadow-sm
+                            {% if product.stock_actual <= 0 %}bg-rose-500 text-white shadow-rose-500/20{% elif product.stock_actual <= product.stock_minimo // 2 %}bg-rose-100 text-rose-700 border border-rose-200{% else %}bg-amber-100 text-amber-700 border border-amber-200{% endif %}">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            {{ product.stock_actual }}
+                        </div>
+                        <p class="text-xs text-slate-400 font-bold uppercase text-center mt-1">quedan</p>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if alertas_edificios %}
+            <div class="px-5 py-2.5 bg-rose-50 border-y border-rose-100">
+                <h4 class="text-xs font-bold text-rose-700 uppercase tracking-widest">Inventario Local (Edificios)</h4>
+            </div>
+            <ul class="divide-y divide-rose-100/50">
+                {% for inv in alertas_edificios %}
+                <li class="px-5 py-4 flex items-center gap-4 hover:bg-rose-50/50 transition-colors">
+                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-rose-100 flex items-center justify-center shrink-0 p-1">
+                        <img src="{{ inv.product.imagen_url }}" class="max-h-full object-contain mix-blend-multiply border-0">
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <p class="text-[13px] font-extrabold text-rose-900 leading-tight">
+                            <span class="font-black">{{ inv.building.name }}</span> requiere reposición de <span class="font-bold">{{ inv.product.name }}</span>
+                        </p>
+                        <p class="text-xs text-rose-600 font-bold mt-1">Stock local: {{ inv.quantity }} <span class="font-medium text-rose-400">(Mín: {{ inv.product.stock_minimo }})</span></p>
+                    </div>
+                    <div class="shrink-0">
+                        <span class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
         {% else %}
         <div class="p-8 text-center">
             <div class="w-14 h-14 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
@@ -172,7 +203,7 @@
                 </svg>
             </div>
             <p class="text-[13px] font-extrabold text-[#00205B]">¡Stock Controlado!</p>
-            <p class="text-xs font-medium text-slate-500 mt-1">Todos los productos operan por encima del mínimo.</p>
+            <p class="text-xs font-medium text-slate-500 mt-1">Todos los productos operan por encima del mínimo en todos los almacenes.</p>
         </div>
         {% endif %}
     </div>
@@ -181,49 +212,49 @@
     <!-- Quick Navigation Grid                  -->
     <!-- ════════════════════════════════════════ -->
     <div class="pt-2">
-        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Acceso Rápido</h3>
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Acceso Rápido</h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <a href="{{ url_for('dispatch.list_pending') }}"
                class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
                 <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
                     <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                 </div>
-                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Despacho</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Despacho</p>
             </a>
             <a href="{{ url_for('catalog.upload_csv') }}"
                class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
                 <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
                     <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                 </div>
-                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Catálogo CSV</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Catálogo CSV</p>
             </a>
             <a href="{{ url_for('catalog.assign_building') }}"
                class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
                 <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
                     <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
-                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Asignar Edif.</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Asignar Edif.</p>
             </a>
             <a href="{{ url_for('catalog.create_building') }}"
                class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
                 <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
                     <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 </div>
-                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Nuevo Edificio</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Nuevo Edificio</p>
             </a>
             <a href="{{ url_for('catalog.create_admin') }}"
                class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
                 <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
                     <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                 </div>
-                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Nuevo Admin</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Nuevo Admin</p>
             </a>
             <a href="{{ url_for('orders.list_buildings') }}"
                class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
                 <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
                     <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
                 </div>
-                <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Ver Pedidos</p>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Ver Pedidos</p>
             </a>
         </div>
     </div>
@@ -295,11 +326,11 @@ new Chart(ctxPie, {
         datasets: [{
             data: {{ chart_productos_data | tojson }},
             backgroundColor: [
-                'rgba(0, 32, 91, 1)',
-                'rgba(250, 172, 42, 1)',
-                'rgba(15, 45, 105, 1)',
-                'rgba(255, 185, 65, 1)',
-                'rgba(30, 50, 120, 1)',
+                '#00205B', // Dark Blue principal
+                '#FAAC2A', // Naranja/Ambar principal
+                '#0ea5e9', // Sky Blue (Tailwind)
+                '#10b981', // Emerald Green (Tailwind)
+                '#f43f5e', // Rose / Pink (Tailwind)
             ],
             borderColor: '#ffffff',
             borderWidth: 4,
@@ -308,6 +339,7 @@ new Chart(ctxPie, {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         cutout: '65%',
         plugins: {
             legend: {

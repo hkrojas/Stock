@@ -10,7 +10,7 @@
             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">Edificio</p>
             <h2 class="text-xl font-extrabold text-[#00205B] leading-tight">{{ order.building.name }}</h2>
         </div>
-        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-black tracking-wider shrink-0 border
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold tracking-wider shrink-0 border
             {% if order.status == 'draft' %} bg-amber-50 text-amber-700 border-amber-200
             {% elif order.status == 'submitted' %} bg-emerald-50 text-emerald-700 border-emerald-200
             {% elif order.status == 'dispatched' %} bg-emerald-100 text-emerald-800 border-emerald-300
@@ -19,9 +19,52 @@
         </span>
     </div>
 
+    <!-- MAIN TWO-COLUMN LAYOUT -->
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+    
     {% if order.status == 'draft' %}
-    <!-- Product Catalog Section -->
-    <div>
+    <!-- Product Catalog Section (Left Column) -->
+    <div class="w-full lg:w-[70%]">
+        
+        {% if critical_inventory %}
+        <div class="mb-6 p-5 sm:p-6 bg-rose-50 border border-rose-200 rounded-3xl shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <h2 class="text-xl font-black text-rose-900 tracking-tight">Sugerencias de Reposición (Stock Local Crítico)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {% for inv in critical_inventory %}
+                <div class="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm border border-rose-100 hover:border-rose-300 transition-colors group">
+                    <div class="w-14 h-14 shrink-0 bg-slate-50 flex items-center justify-center rounded-xl p-1 relative">
+                        <img src="{{ inv.product.imagen_url }}" alt="{{ inv.product.name }}" class="max-h-full object-contain mix-blend-multiply transition-transform group-hover:scale-110">
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <h3 class="text-sm font-bold text-[#00205B] truncate mb-0.5" title="{{ inv.product.name }}">{{ inv.product.name }}</h3>
+                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 shadow-sm leading-tight">
+                            Stock: {{ inv.quantity }} / Min: {{ inv.product.stock_minimo }}
+                        </span>
+                    </div>
+                    <div class="shrink-0">
+                        <form hx-post="{{ url_for('orders.add_item', order_id=order.id) }}" 
+                              hx-target="#order-items-list"
+                              hx-swap="outerHTML"
+                              class="flex items-center">
+                            <input type="hidden" name="product_id" value="{{ inv.product.id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" 
+                                    class="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-[#FAAC2A] to-[#E5981D] text-white hover:shadow-lg hover:shadow-[#FAAC2A]/30 transition-all hover:scale-105 active:scale-95"
+                                    {% if order.status != 'draft' %}disabled{% endif %} title="Añadir 1 unidad al carrito">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="flex items-center gap-2 mb-3 px-1">
             <div class="w-6 h-6 bg-slate-100 border border-slate-200 rounded-md flex items-center justify-center shadow-sm">
                 <svg class="w-3.5 h-3.5 text-[#00205B]" fill="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
@@ -69,7 +112,7 @@
         <!-- Product Cards Grid -->
         <div id="product-catalog" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 xl:gap-4">
             {% for product in products %}
-            <div class="catalog-card bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden card-hover cursor-pointer"
+            <div class="catalog-card bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden card-hover group"
                  data-id="{{ product.id }}"
                  data-name="{{ product.name|lower }}" 
                  data-desc="{{ (product.description or '')|lower }}"
@@ -79,33 +122,36 @@
                  data-stock="{{ product.stock_actual }}"
                  data-unit="{{ product.unit }}"
                  data-raw-name="{{ product.name }}"
-                 data-raw-desc="{{ product.description or 'Sin descripción' }}"
-                 onclick="if(!event.target.closest('form')){ openProductModal(this); }">
+                 data-raw-desc="{{ product.description or 'Sin descripción' }}">
 
-                <!-- Product Image -->
-                <div class="aspect-square bg-slate-100 overflow-hidden relative">
-                    <img src="{{ product.imagen_url or '/static/img/default-product.png' }}"
-                         alt="{{ product.name }}"
-                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                         loading="lazy"
-                         onerror="this.src='https://via.placeholder.com/200x200?text=N/A'">
-                    <!-- Stock Badge -->
-                    <span class="absolute top-2 right-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-sm
-                        {% if product.stock_actual > 10 %} bg-emerald-500 text-white
-                        {% elif product.stock_actual > 0 %} bg-amber-500 text-white
-                        {% else %} bg-rose-500 text-white {% endif %}">
-                        {{ product.stock_actual }}
-                    </span>
+                <!-- Clickable Image & Title Area (Triggers Modal) -->
+                <div class="cursor-pointer" onclick="openProductModal(this.closest('.catalog-card'));">
+                    <div class="aspect-square bg-slate-100 overflow-hidden relative">
+                        <img src="{{ product.imagen_url or '/static/img/default-product.png' }}"
+                             alt="{{ product.name }}"
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                             loading="lazy"
+                             onerror="this.src='https://via.placeholder.com/200x200?text=N/A'">
+                        <!-- Stock Badge -->
+                        <span class="absolute top-2 right-2 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm
+                            {% if product.stock_actual > 10 %} bg-emerald-500 text-white
+                            {% elif product.stock_actual > 0 %} bg-amber-500 text-white
+                            {% else %} bg-rose-500 text-white {% endif %}">
+                            {{ product.stock_actual }}
+                        </span>
+                    </div>
+
+                    <div class="px-3 pt-3 pb-0">
+                        <h4 class="text-sm font-extrabold text-[#00205B] truncate leading-tight group-hover:text-[#FAAC2A] transition-colors">{{ product.name }}</h4>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5 leading-snug line-clamp-2 h-8">{{ product.description or 'Sin descripción' }}</p>
+                    </div>
                 </div>
 
-                <!-- Info + Add Form -->
-                <div class="p-3">
-                    <h4 class="text-sm font-extrabold text-[#00205B] truncate leading-tight">{{ product.name }}</h4>
-                    <p class="text-[11px] font-medium text-slate-400 mt-0.5 leading-snug line-clamp-2 h-8">{{ product.description or 'Sin descripción' }}</p>
-
-                    <div class="flex items-center justify-between mt-2 mb-2.5">
+                <!-- Input & Action Form (Separated from onclick) -->
+                <div class="px-3 pb-3">
+                    <div class="flex items-center justify-between mt-1 mb-2.5">
                         <span class="text-sm font-black text-[#FAAC2A]">S/ {{ "%.2f"|format(product.precio or 0) }}</span>
-                        <span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md">{{ product.unit }}</span>
+                        <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-md">{{ product.unit }}</span>
                     </div>
 
                     <!-- HTMX Add to Cart -->
@@ -133,27 +179,53 @@
     </div>
     {% endif %}
 
-    <!-- Order Summary (HTMX Target) -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
-            <div class="w-7 h-7 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center justify-center shadow-inner">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
-                </svg>
+    <!-- Order Summary Column (Right Column, Sticky) -->
+    <div class="w-full {% if order.status == 'draft' %}lg:w-[30%] lg:sticky lg:top-24 flex flex-col gap-4{% endif %}">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden {% if order.status == 'draft' %}max-h-[calc(100vh-14rem)] overflow-y-auto custom-scrollbar{% endif %}">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5 sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                <div class="w-7 h-7 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center justify-center shadow-inner">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+                    </svg>
+                </div>
+                <h3 class="text-sm font-extrabold text-[#00205B]">Resumen del Pedido</h3>
             </div>
-            <h3 class="text-sm font-extrabold text-[#00205B]">Resumen del Pedido</h3>
+            {% include 'orders/partials/order_items.html' %}
         </div>
-        {% include 'orders/partials/order_items.html' %}
+        
+        <!-- Desktop Confirm Button (Only visible on LG inside the sidebar) -->
+        {% if order.status == 'draft' %}
+        <div class="hidden lg:block shrink-0">
+            <form method="POST" action="{{ url_for('orders.submit_order', order_id=order.id) }}" id="submit-order-form-desktop">
+                <button type="submit"
+                        id="submit-order-btn-desktop"
+                        class="w-full flex items-center justify-center gap-2 py-4 font-extrabold text-[#00205B] text-sm rounded-2xl shadow-lg
+                               bg-[#FAAC2A] hover:bg-[#E5981D] shadow-black/10 hover:shadow-xl active:scale-[.98] transition-all
+                               disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100">
+                    <svg class="w-5 h-5" id="btn-icon-check-desktop" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <svg class="w-5 h-5 animate-spin hidden" id="btn-icon-spin-desktop" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    <span id="btn-label-desktop">Confirmar Pedido</span>
+                </button>
+            </form>
+        </div>
+        {% endif %}
     </div>
+
+    </div> <!-- End Main Two-Column Layout -->
 </div>
 
 <!-- ──────────────────────────────────────────────────────────────────── -->
-<!-- Sticky Confirm Button — Only for draft orders                       -->
+<!-- Sticky Confirm Button (Mobile Only) — Only for draft orders         -->
 <!-- Double-submit protection: button disables itself after first click  -->
 <!-- ──────────────────────────────────────────────────────────────────── -->
 {% if order.status == 'draft' %}
-<div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 z-40 flex justify-center shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-    <form method="POST" action="{{ url_for('orders.submit_order', order_id=order.id) }}" id="submit-order-form" class="w-full max-w-[1400px]">
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 z-40 flex lg:hidden justify-center shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+    <form method="POST" action="{{ url_for('orders.submit_order', order_id=order.id) }}" id="submit-order-form-mobile" class="w-full max-w-[1400px]">
         <button type="submit"
                 id="submit-order-btn"
                 class="w-full flex items-center justify-center gap-2 py-4 font-extrabold text-[#00205B] text-sm rounded-2xl shadow-lg
@@ -174,24 +246,33 @@
 <!-- Double-submit prevention script -->
 <script>
 (function () {
-    const form = document.getElementById('submit-order-form');
-    const btn  = document.getElementById('submit-order-btn');
-    const iconCheck = document.getElementById('btn-icon-check');
-    const iconSpin  = document.getElementById('btn-icon-spin');
-    const label = document.getElementById('btn-label');
+    const bindForm = (formId, btnId, iconCheckId, iconSpinId, labelId) => {
+        const form = document.getElementById(formId);
+        const btn  = document.getElementById(btnId);
+        const iconCheck = document.getElementById(iconCheckId);
+        const iconSpin  = document.getElementById(iconSpinId);
+        const label = document.getElementById(labelId);
 
-    if (form && btn) {
-        form.addEventListener('submit', function (e) {
-            if (btn.disabled) {
-                e.preventDefault();
-                return false;
-            }
-            btn.disabled = true;
-            iconCheck.classList.add('hidden');
-            iconSpin.classList.remove('hidden');
-            label.textContent = 'Procesando...';
-        });
-    }
+        if (form && btn) {
+            form.addEventListener('submit', function (e) {
+                if (btn.disabled) {
+                    e.preventDefault();
+                    return false;
+                }
+                btn.disabled = true;
+                iconCheck.classList.add('hidden');
+                iconSpin.classList.remove('hidden');
+                label.textContent = 'Procesando...';
+                
+                // Also disable the OTHER button to prevent double submits if user interacts with both
+                const otherBtn = document.getElementById(btnId === 'submit-order-btn' ? 'submit-order-btn-desktop' : 'submit-order-btn');
+                if (otherBtn) otherBtn.disabled = true;
+            });
+        }
+    };
+
+    bindForm('submit-order-form-mobile', 'submit-order-btn', 'btn-icon-check', 'btn-icon-spin', 'btn-label');
+    bindForm('submit-order-form-desktop', 'submit-order-btn-desktop', 'btn-icon-check-desktop', 'btn-icon-spin-desktop', 'btn-label-desktop');
 })();
 </script>
 
@@ -230,7 +311,7 @@
                 
                 <div class="w-full sm:w-3/5 p-6 sm:p-8 flex flex-col overflow-y-auto">
                     <div class="mb-4 flex-1">
-                        <span id="modal-stock-badge" class="inline-block px-3 py-1 text-[11px] font-black tracking-widest uppercase rounded-full mb-3 text-white shadow-sm"></span>
+                        <span id="modal-stock-badge" class="inline-block px-3 py-1 text-xs font-bold tracking-widest uppercase rounded-full mb-3 text-white shadow-sm"></span>
                         <h3 id="modal-name" class="text-xl sm:text-2xl font-extrabold text-[#00205B] leading-tight mb-3"></h3>
                         <p id="modal-desc" class="text-sm text-slate-500 font-medium leading-relaxed"></p>
                     </div>
@@ -238,10 +319,10 @@
                     <div class="mt-4 pt-4 border-t border-slate-100 shrink-0">
                         <div class="flex items-end justify-between">
                             <div>
-                                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Precio Unitario</p>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Precio Unitario</p>
                                 <p class="text-3xl font-extrabold text-[#FAAC2A]">S/ <span id="modal-price"></span></p>
                             </div>
-                            <span id="modal-unit" class="text-[11px] font-bold text-[#00205B] bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg"></span>
+                            <span id="modal-unit" class="text-xs font-bold text-[#00205B] bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg"></span>
                         </div>
                     </div>
                 </div>
@@ -409,7 +490,7 @@ window.openProductModal = function(card) {
     const stock = parseInt(card.dataset.stock);
     const badge = document.getElementById('modal-stock-badge');
     badge.innerText = `STOCK DISPONIBLE: ${stock}`;
-    badge.className = `inline-block px-3 py-1 text-[11px] font-black tracking-widest uppercase rounded-full mb-4 text-white shadow-sm ${stock > 10 ? 'bg-emerald-500' : (stock > 0 ? 'bg-amber-500' : 'bg-rose-500')}`;
+    badge.className = `inline-block px-3 py-1 text-xs font-bold tracking-widest uppercase rounded-full mb-4 text-white shadow-sm ${stock > 10 ? 'bg-emerald-500' : (stock > 0 ? 'bg-amber-500' : 'bg-rose-500')}`;
     
     modal.classList.remove('hidden');
     // trigger reflow

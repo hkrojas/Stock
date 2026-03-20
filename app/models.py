@@ -163,3 +163,34 @@ class InventoryMovement(db.Model):
 
     def __repr__(self):
         return f'<InventoryMovement {self.movement_type} {self.quantity} of Product {self.product_id}>'
+
+class BuildingInventory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    building_id = db.Column(db.Integer, db.ForeignKey('building.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=0)
+    last_updated = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    building = db.relationship('Building', backref=db.backref('inventory', lazy=True, cascade="all, delete-orphan"))
+    product = db.relationship('Product')
+
+    def __repr__(self):
+        return f'<BuildingInventory Building {self.building_id} Product {self.product_id} Qt {self.quantity}>'
+
+
+class ConsumptionLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    building_id = db.Column(db.Integer, db.ForeignKey('building.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    reported_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    quantity_consumed = db.Column(db.Integer, nullable=False)
+    reported_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    building = db.relationship('Building')
+    product = db.relationship('Product')
+    reported_by = db.relationship('User', foreign_keys=[reported_by_id])
+
+    def __repr__(self):
+        return f'<ConsumptionLog Building {self.building_id} Product {self.product_id} Consumed {self.quantity_consumed}>'

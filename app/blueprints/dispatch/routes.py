@@ -1,7 +1,9 @@
-from flask import request, render_template, redirect, url_for, flash
+import csv
+import io
+from flask import request, render_template, redirect, url_for, flash, Response
 from flask_login import current_user, login_required
 from app.blueprints.dispatch import dispatch_bp
-from app.models import Order, OrderItem, DispatchBatch, DispatchBatchItem, Product, InventoryMovement
+from app.models import Order, OrderItem, DispatchBatch, DispatchBatchItem, Product, InventoryMovement, BuildingInventory
 from app.extensions import db
 from app.utils.decorators import superadmin_required
 
@@ -109,8 +111,56 @@ def confirm_dispatch(batch_id):
 
     for order in batch.orders:
         order.status = 'dispatched'
+        
+        # Update local building inventory when dispatching
+        for item in order.items:
+            local_inv = BuildingInventory.query.filter_by(
+                building_id=order.building_id,
+                product_id=item.product_id
+            ).first()
+            
+            if local_inv:
+                local_inv.quantity += item.quantity
+            else:
+                new_local_inv = BuildingInventory(
+                    building_id=order.building_id,
+                    product_id=item.product_id,
+                    quantity=item.quantity
+                )
+                db.session.add(new_local_inv)
 
     db.session.commit()
 
-    flash(f'¡Despacho completado! El inventario ha sido descontado para el Lote #{batch.id}.', 'success')
+    flash(f'¡Despacho completado! El inventario ha sido descontado del almacén central y transferido exitosamente al inventario local de los edificios.', 'success')
     return redirect(url_for('dispatch.batch_detail', batch_id=batch.id))
+
+@dispatch_bp.route('/batch/<int:batch_id>/export')
+@superadmin_required
+def export_batch(batch_id):
+    """Export the batch picking list to CSV."""
+    batch = DispatchBatch.query.get_or_404(batch_id)
+
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['SKU', 'Producto', 'Unidad', 'Cantidad Total'])
+
+    for item in batch.items:
+        cw.writerow([
+            item.product.sku or 'N/A',
+            item.product.name,
+            item.product.unit,
+            item.total_quantity
+        ])
+
+    output = si.getvalue()
+    si.close()
+    
+    # Prepend BOM for Excel UTF-8 compatibility
+    bom = '\ufeff'
+    
+    return Response(
+        bom + output,
+        mimetype='text/csv; charset=utf-8',
+        headers={"Content-Disposition": f"attachment;filename=picking_list_lote_{batch_id}.csv"}
+    )
+
