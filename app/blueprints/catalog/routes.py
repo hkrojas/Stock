@@ -7,14 +7,14 @@ from werkzeug.security import generate_password_hash
 from app.blueprints.catalog import catalog_bp
 from app.models import User, Building, Product, CsvUpload, OrderItem, InventoryMovement
 from app.extensions import db
-from app.utils.decorators import superadmin_required, admin_required
+from app.utils.decorators import superadmin_required, admin_required, management_required
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Assign Building to Admin
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/assign_building', methods=['GET', 'POST'])
-@admin_required
+@management_required
 def assign_building():
     if request.method == 'POST':
         admin_id = request.form.get('admin_id')
@@ -51,7 +51,7 @@ def assign_building():
 # Create New Building
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings/new', methods=['GET', 'POST'])
-@superadmin_required
+@management_required
 def create_building():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -93,7 +93,7 @@ def create_building():
 # List Buildings
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings', methods=['GET'])
-@admin_required
+@management_required
 def list_buildings():
     buildings = Building.query.all()
     return render_template('catalog/list_buildings_admin.html', buildings=buildings)
@@ -103,7 +103,7 @@ def list_buildings():
 # Edit Building
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings/<int:building_id>/edit', methods=['GET', 'POST'])
-@superadmin_required
+@management_required
 def edit_building(building_id):
     building = Building.query.get_or_404(building_id)
     if request.method == 'POST':
@@ -148,7 +148,7 @@ def edit_building(building_id):
 # Delete Building
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings/<int:building_id>/delete', methods=['POST'])
-@superadmin_required
+@management_required
 def delete_building(building_id):
     building = Building.query.get_or_404(building_id)
     
@@ -166,16 +166,25 @@ def delete_building(building_id):
 # Create New Admin User
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins/new', methods=['GET', 'POST'])
-@superadmin_required
+@management_required
 def create_admin():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
         confirm  = request.form.get('confirm_password', '').strip()
+        role = request.form.get('role', 'admin')
 
         if not username or not password:
             flash('Usuario y contraseña son obligatorios.', 'error')
+            return redirect(url_for('catalog.create_admin'))
+
+        if role not in ['admin', 'manager']:
+            flash('El rol seleccionado no es válido.', 'error')
+            return redirect(url_for('catalog.create_admin'))
+
+        if role == 'manager' and current_user.role != 'superadmin':
+            flash('Solo un Superadmin puede asignar el rol de Manager.', 'error')
             return redirect(url_for('catalog.create_admin'))
 
         if password != confirm:
@@ -191,7 +200,7 @@ def create_admin():
             flash(f'Ya existe un usuario con el nombre "{username}".', 'error')
             return redirect(url_for('catalog.create_admin'))
 
-        new_user = User(username=username, name=name, role='admin')
+        new_user = User(username=username, name=name, role=role)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
@@ -205,9 +214,9 @@ def create_admin():
 # List Admins
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins', methods=['GET'])
-@superadmin_required
+@management_required
 def list_admins():
-    admins = User.query.filter_by(role='admin').all()
+    admins = User.query.filter(User.role.in_(['admin', 'manager'])).all()
     # Find active building for each admin if any
     admin_buildings = {}
     for admin in admins:
@@ -219,17 +228,22 @@ def list_admins():
 # Edit Admin
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins/<int:admin_id>/edit', methods=['GET', 'POST'])
-@superadmin_required
+@management_required
 def edit_admin(admin_id):
     admin = User.query.get_or_404(admin_id)
-    if admin.role != 'admin':
-        flash('Solo puedes editar cuentas de administrador.', 'error')
+    if admin.role == 'superadmin':
+        flash('No puedes editar cuentas de Superadmin.', 'error')
+        return redirect(url_for('catalog.list_admins'))
+
+    if admin.role == 'manager' and current_user.role != 'superadmin' and current_user.id != admin.id:
+        flash('Solo un Superadmin puede editar a otros Managers.', 'error')
         return redirect(url_for('catalog.list_admins'))
 
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
+        role = request.form.get('role')
         building_ids = request.form.getlist('building_ids')
 
         if not name or not username:
@@ -243,6 +257,12 @@ def edit_admin(admin_id):
 
         admin.name = name
         admin.username = username
+        
+        if role in ['admin', 'manager']:
+            if role == 'manager' and current_user.role != 'superadmin':
+                flash('Solo un Superadmin puede asignar el rol de Manager.', 'error')
+                return redirect(url_for('catalog.edit_admin', admin_id=admin.id))
+            admin.role = role
 
         if password:
             if len(password) < 6:
@@ -275,7 +295,7 @@ def edit_admin(admin_id):
 # Delete Admin
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins/<int:admin_id>/delete', methods=['POST'])
-@superadmin_required
+@management_required
 def delete_admin(admin_id):
     admin = User.query.get_or_404(admin_id)
     if admin.role == 'superadmin':
@@ -295,7 +315,7 @@ def delete_admin(admin_id):
 # CSV Upload for Product Catalog
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/upload', methods=['GET', 'POST'])
-@admin_required
+@management_required
 def upload_csv():
     """Upload a CSV file to create or update products in the master catalog."""
     if request.method == 'POST':
@@ -421,7 +441,7 @@ def upload_csv():
     return render_template('catalog/upload_csv.html', products=products, uploads=uploads)
 
 @catalog_bp.route('/upload/<int:upload_id>/delete', methods=['POST'])
-@admin_required
+@management_required
 def delete_csv_upload(upload_id):
     upload = CsvUpload.query.get_or_404(upload_id)
     products = Product.query.filter_by(source_csv_id=upload.id).all()
@@ -448,13 +468,13 @@ def delete_csv_upload(upload_id):
 # Local Warehouse (Products CRUD)
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/warehouse', methods=['GET'])
-@admin_required
+@management_required
 def warehouse():
     products = Product.query.order_by(Product.name).all()
     return render_template('catalog/warehouse.html', products=products)
 
 @catalog_bp.route('/warehouse/product/new', methods=['GET', 'POST'])
-@admin_required
+@management_required
 def create_product():
     if request.method == 'POST':
         sku = request.form.get('sku', '').strip()
@@ -464,11 +484,25 @@ def create_product():
         precio = request.form.get('precio', type=float, default=0.0)
         stock = request.form.get('stock_actual', type=int, default=0)
         
+        imagen_url = None
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                ext = os.path.splitext(file.filename)[1]
+                filename = f"prod_{uuid.uuid4().hex}{ext}"
+                upload_path = os.path.join(current_app.root_path, 'static', 'uploads')
+                os.makedirs(upload_path, exist_ok=True)
+                file.save(os.path.join(upload_path, filename))
+                imagen_url = f'/static/uploads/{filename}'
+        
         if not name:
             flash('El nombre del producto es obligatorio.', 'error')
             return redirect(url_for('catalog.create_product'))
             
         product = Product(sku=sku if sku else None, name=name, description=description, unit=unit, precio=precio, stock_actual=stock)
+        if imagen_url:
+            product.imagen_url = imagen_url
+            
         db.session.add(product)
         db.session.commit()
         flash(f'Producto "{name}" creado correctamente.', 'success')
@@ -477,7 +511,7 @@ def create_product():
     return render_template('catalog/create_product.html')
 
 @catalog_bp.route('/warehouse/product/<int:product_id>/edit', methods=['GET', 'POST'])
-@admin_required
+@management_required
 def edit_product(product_id):
     product = Product.query.get_or_404(product_id)
     if request.method == 'POST':
@@ -488,6 +522,16 @@ def edit_product(product_id):
         product.precio = request.form.get('precio', type=float, default=0.0)
         product.stock_actual = request.form.get('stock_actual', type=int, default=0)
         
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                ext = os.path.splitext(file.filename)[1]
+                filename = f"prod_{uuid.uuid4().hex}{ext}"
+                upload_path = os.path.join(current_app.root_path, 'static', 'uploads')
+                os.makedirs(upload_path, exist_ok=True)
+                file.save(os.path.join(upload_path, filename))
+                product.imagen_url = f'/static/uploads/{filename}'
+        
         db.session.commit()
         flash(f'Producto "{product.name}" actualizado correctamente.', 'success')
         return redirect(url_for('catalog.warehouse'))
@@ -495,7 +539,7 @@ def edit_product(product_id):
     return render_template('catalog/edit_product.html', product=product)
 
 @catalog_bp.route('/warehouse/product/<int:product_id>/toggle', methods=['POST'])
-@admin_required
+@management_required
 def toggle_product(product_id):
     product = Product.query.get_or_404(product_id)
     product.is_active = not product.is_active

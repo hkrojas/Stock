@@ -25,17 +25,24 @@
             <!-- Administrator Select -->
             <div>
                 <label for="admin_id" class="block text-sm font-bold text-slate-700 mb-1.5">Administrador Destino</label>
-                <div class="relative">
-                    <select id="admin_id" name="admin_id" required
-                        class="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all appearance-none cursor-pointer">
-                        <option value="" disabled selected>Seleccione un administrador...</option>
+                <div class="relative" id="custom-admin-select">
+                    <input type="hidden" name="admin_id" id="admin_id" value="" required>
+                    <button type="button" class="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all text-left flex justify-between items-center shadow-sm" onclick="document.getElementById('admin-options').classList.toggle('hidden')">
+                        <span id="admin-display" class="pt-0.5 text-slate-500">Seleccione un administrador...</span>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </button>
+                    <!-- Dropdown Content -->
+                    <ul id="admin-options" class="hidden absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-y-auto max-h-60 divide-y divide-slate-50">
                         {% for admin in admins %}
-                            <option value="{{ admin.id }}">@{{ admin.username }} ({{ admin.name }})</option>
+                        <li>
+                            <button type="button" class="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors" onclick="selectAdmin('{{ admin.id }}', '@{{ admin.username }} ({{ admin.name }})')">
+                                @{{ admin.username }} ({{ admin.name }})
+                            </button>
+                        </li>
                         {% endfor %}
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
+                    </ul>
                 </div>
             </div>
 
@@ -97,6 +104,23 @@
 
 {% block scripts %}
 <script>
+function selectAdmin(value, text) {
+    document.getElementById('admin_id').value = value;
+    const display = document.getElementById('admin-display');
+    display.textContent = text;
+    display.classList.remove('text-slate-500');
+    display.classList.add('text-slate-800');
+    document.getElementById('admin-options').classList.add('hidden');
+}
+
+document.addEventListener('click', function(event) {
+    const selectContainer = document.getElementById('custom-admin-select');
+    if (selectContainer && !selectContainer.contains(event.target)) {
+        const adminOpts = document.getElementById('admin-options');
+        if(adminOpts) adminOpts.classList.add('hidden');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchBuildings');
     const toggleAllBtn = document.getElementById('toggleAllBtn');

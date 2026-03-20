@@ -52,15 +52,35 @@
             <!-- Assignments -->
             <div class="pt-2">
                 <label for="admin_id" class="block text-sm font-bold text-slate-700 mb-1.5">Asignar Administrador</label>
-                <select id="admin_id" name="admin_id" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all">
-                    <option value="none">Sin asginar</option>
-                    {% for admin in admins %}
-                        <option value="{{ admin.id }}" {% if building.admin_id == admin.id %}selected{% endif %}>
-                            {{ admin.name or admin.username }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <p class="text-xs text-slate-400 mt-1">El administrador seleccionado podrá gestionar los pedidos de este edificio.</p>
+                <div class="relative" id="custom-admin-select">
+                    <input type="hidden" name="admin_id" id="admin_id" value="{{ building.admin_id or 'none' }}">
+                    <button type="button" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all text-left flex justify-between items-center shadow-sm" onclick="document.getElementById('admin-options').classList.toggle('hidden')">
+                        <span id="admin-display" class="pt-0.5">
+                            {% if building.admin %}
+                                {{ building.admin.name or building.admin.username }}
+                            {% else %}
+                                Sin asignar
+                            {% endif %}
+                        </span>
+                        <svg class="w-4 h-4 text-slate-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <!-- Dropdown Content -->
+                    <ul id="admin-options" class="hidden absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-y-auto max-h-60 divide-y divide-slate-50">
+                        <li>
+                            <button type="button" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors" onclick="selectAdmin('none', 'Sin asignar')">
+                                Sin asignar
+                            </button>
+                        </li>
+                        {% for admin in admins %}
+                        <li>
+                            <button type="button" class="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors" onclick="selectAdmin('{{ admin.id }}', '{{ admin.name or admin.username }}')">
+                                {{ admin.name or admin.username }}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <p class="text-xs text-slate-400 mt-1.5">El administrador seleccionado podrá gestionar los pedidos de este edificio.</p>
             </div>
 
             <!-- Imagen Frontis -->
@@ -90,4 +110,22 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function selectAdmin(value, text) {
+        document.getElementById('admin_id').value = value;
+        document.getElementById('admin-display').textContent = text;
+        document.getElementById('admin-options').classList.add('hidden');
+    }
+
+    document.addEventListener('click', function(event) {
+        const selectContainer = document.getElementById('custom-admin-select');
+        if (selectContainer && !selectContainer.contains(event.target)) {
+            const adminOpts = document.getElementById('admin-options');
+            if(adminOpts) adminOpts.classList.add('hidden');
+        }
+    });
+</script>
 {% endblock %}

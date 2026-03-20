@@ -5,11 +5,11 @@ from flask_login import current_user, login_required
 from app.blueprints.dispatch import dispatch_bp
 from app.models import Order, OrderItem, DispatchBatch, DispatchBatchItem, Product, InventoryMovement, BuildingInventory
 from app.extensions import db
-from app.utils.decorators import superadmin_required
+from app.utils.decorators import management_required
 
 
 @dispatch_bp.route('/pending')
-@superadmin_required
+@management_required
 def list_pending():
     """List all orders that are ready to be consolidated (draft or submitted)."""
     orders = Order.query.filter(Order.status.in_(['draft', 'submitted'])).order_by(Order.created_at.desc()).all()
@@ -17,7 +17,7 @@ def list_pending():
 
 
 @dispatch_bp.route('/consolidate', methods=['POST'])
-@superadmin_required
+@management_required
 def consolidate_orders():
     """Consolidate selected orders into a single DispatchBatch."""
     selected_order_ids = request.form.getlist('order_ids')
@@ -64,7 +64,7 @@ def consolidate_orders():
 
 
 @dispatch_bp.route('/batch/<int:batch_id>')
-@superadmin_required
+@management_required
 def batch_detail(batch_id):
     """View the aggregated packing list for a given batch."""
     batch = DispatchBatch.query.get_or_404(batch_id)
@@ -72,7 +72,7 @@ def batch_detail(batch_id):
 
 
 @dispatch_bp.route('/picking/<int:batch_id>')
-@superadmin_required
+@management_required
 def picking(batch_id):
     """View the final picking list for warehouse staff to confirm dispatch."""
     batch = DispatchBatch.query.get_or_404(batch_id)
@@ -85,7 +85,7 @@ def picking(batch_id):
 
 
 @dispatch_bp.route('/picking/<int:batch_id>/confirm', methods=['POST'])
-@superadmin_required
+@management_required
 def confirm_dispatch(batch_id):
     """Process the dispatch: deduct stock, change status, and log movements."""
     batch = DispatchBatch.query.get_or_404(batch_id)
@@ -111,31 +111,14 @@ def confirm_dispatch(batch_id):
 
     for order in batch.orders:
         order.status = 'dispatched'
-        
-        # Update local building inventory when dispatching
-        for item in order.items:
-            local_inv = BuildingInventory.query.filter_by(
-                building_id=order.building_id,
-                product_id=item.product_id
-            ).first()
-            
-            if local_inv:
-                local_inv.quantity += item.quantity
-            else:
-                new_local_inv = BuildingInventory(
-                    building_id=order.building_id,
-                    product_id=item.product_id,
-                    quantity=item.quantity
-                )
-                db.session.add(new_local_inv)
 
     db.session.commit()
 
-    flash(f'¡Despacho completado! El inventario ha sido descontado del almacén central y transferido exitosamente al inventario local de los edificios.', 'success')
+    flash(f'¡Despacho completado! El inventario ha sido descontado del almacén central y los pedidos están en tránsito.', 'success')
     return redirect(url_for('dispatch.batch_detail', batch_id=batch.id))
 
-@dispatch_bp.route('/batch/<int:batch_id>/export')
-@superadmin_required
+@dispatch_bp.route('/batch/<int:batch_id>/export/consolidated')
+@management_required
 def export_batch(batch_id):
     """Export the batch picking list to CSV."""
     batch = DispatchBatch.query.get_or_404(batch_id)
@@ -161,6 +144,44 @@ def export_batch(batch_id):
     return Response(
         bom + output,
         mimetype='text/csv; charset=utf-8',
-        headers={"Content-Disposition": f"attachment;filename=picking_list_lote_{batch_id}.csv"}
+        headers={"Content-Disposition": f"attachment;filename=consolidado_productos_lote_{batch_id}.csv"}
+    )
+
+@dispatch_bp.route('/batch/<int:batch_id>/export/buildings')
+@management_required
+def export_batch_buildings(batch_id):
+    """Export the batch picking list separated by building to CSV."""
+    batch = DispatchBatch.query.get_or_404(batch_id)
+
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['Edificio', 'SKU', 'Producto', 'Unidad', 'Cantidad', 'Precio Unitario', 'Total'])
+
+    for order in batch.orders:
+        building_name = order.building.name
+        for item in order.items:
+            # Use snapshotted price/name if available from Phase 1 protections, otherwise fall back to product attr
+            price = item.precio_unitario if item.precio_unitario is not None else item.product.precio
+            name = item.nombre_producto_snapshot or item.product.name
+            total = item.quantity * price
+            
+            cw.writerow([
+                building_name,
+                item.product.sku or 'N/A',
+                name,
+                item.product.unit,
+                item.quantity,
+                f"{price:.2f}",
+                f"{total:.2f}"
+            ])
+
+    output = si.getvalue()
+    si.close()
+    
+    bom = '\ufeff'
+    return Response(
+        bom + output,
+        mimetype='text/csv; charset=utf-8',
+        headers={"Content-Disposition": f"attachment;filename=distribucion_edificios_lote_{batch_id}.csv"}
     )
 

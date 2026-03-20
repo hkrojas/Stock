@@ -121,6 +121,47 @@
     </div>
 
     <!-- ════════════════════════════════════════ -->
+    <!-- Gasto por Edificio                       -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden card-hover">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-emerald-50 border border-emerald-200 shadow-sm rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-[13px] font-extrabold text-[#00205B]">Gasto Total por Edificio</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Despachado / Entregado</p>
+                </div>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500 font-bold">
+                    <tr>
+                        <th class="px-5 py-3 border-b border-slate-100 uppercase tracking-widest text-[10px]">Edificio</th>
+                        <th class="px-5 py-3 border-b border-slate-100 text-right uppercase tracking-widest text-[10px]">Costo Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for item in costos_por_edificio %}
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="px-5 py-3 font-extrabold text-[#00205B]">{{ item.name }}</td>
+                        <td class="px-5 py-3 text-right font-black text-emerald-600">S/ {{ "%.2f"|format(item.gasto_total) }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="2" class="px-5 py-8 text-center text-slate-400 text-xs font-medium">No hay despachos registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
     <!-- Stock Alerts                            -->
     <!-- ════════════════════════════════════════ -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">

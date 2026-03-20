@@ -41,6 +41,42 @@
                 </div>
             </div>
 
+            <!-- Role -->
+            <div>
+                <label for="role" class="block text-sm font-bold text-slate-700 mb-1.5">Rol del Usuario <span class="text-red-400">*</span></label>
+                <div class="relative" id="custom-role-select">
+                    <input type="hidden" name="role" id="role" value="{{ admin.role }}">
+                    <button type="button" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all text-left flex justify-between items-center shadow-sm {% if current_user.role != 'superadmin' %}cursor-not-allowed opacity-80{% endif %}" {% if current_user.role == 'superadmin' %}onclick="document.getElementById('role-options').classList.toggle('hidden')"{% else %}disabled{% endif %}>
+                        <span id="role-display" class="pt-0.5">
+                            {% if admin.role == 'manager' %}Gerente de Operaciones (Manager){% else %}Administrador de Edificio (Admin){% endif %}
+                        </span>
+                        {% if current_user.role == 'superadmin' %}
+                        <svg class="w-4 h-4 text-slate-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        {% endif %}
+                    </button>
+                    <!-- Dropdown Content -->
+                    {% if current_user.role == 'superadmin' %}
+                    <ul id="role-options" class="hidden absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden divide-y divide-slate-50">
+                        <li>
+                            <button type="button" class="w-full text-left px-4 py-3.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors flex flex-col gap-0.5" onclick="selectRole('admin', 'Administrador de Edificio (Admin)')">
+                                <span>Administrador de Edificio (Admin)</span>
+                                <span class="text-xs font-medium text-slate-400">Podrá gestionar pedidos de edificios asignados.</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="w-full text-left px-4 py-3.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors flex flex-col gap-0.5" onclick="selectRole('manager', 'Gerente de Operaciones (Manager)')">
+                                <span>Gerente de Operaciones (Manager)</span>
+                                <span class="text-xs font-medium text-slate-400">Podrá administrar catálogo, edificios y personal.</span>
+                            </button>
+                        </li>
+                    </ul>
+                    {% endif %}
+                </div>
+                {% if current_user.role != 'superadmin' %}
+                <p class="text-[11px] text-slate-400 font-medium mt-1.5 ml-1">Solo los Superadmin pueden modificar el rol del sistema.</p>
+                {% endif %}
+            </div>
+
             <div>
                 <label for="password" class="block text-sm font-bold text-slate-700 mb-1.5">Nueva Contraseña <span class="text-slate-400 font-normal">(opcional)</span></label>
                 <div class="relative">
@@ -99,6 +135,20 @@
 
 {% block scripts %}
 <script>
+function selectRole(value, text) {
+    document.getElementById('role').value = value;
+    document.getElementById('role-display').textContent = text;
+    document.getElementById('role-options').classList.add('hidden');
+}
+
+document.addEventListener('click', function(event) {
+    const selectContainer = document.getElementById('custom-role-select');
+    if (selectContainer && !selectContainer.contains(event.target)) {
+        const roleOpts = document.getElementById('role-options');
+        if(roleOpts) roleOpts.classList.add('hidden');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchBuildings');
     const toggleAllBtn = document.getElementById('toggleAllBtn');

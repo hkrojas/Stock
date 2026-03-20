@@ -81,6 +81,40 @@ def order_detail(order_id):
 
     return render_template('orders/order_detail.html', order=order, products=products, critical_inventory=critical_inventory)
 
+@orders_bp.route('/<int:order_id>/receive', methods=['POST'])
+@admin_required
+def receive_order(order_id):
+    """Confirm receipt of a dispatched order and increase local building inventory."""
+    order = Order.query.get_or_404(order_id)
+    _assert_order_ownership(order)
+    
+    if order.status != 'dispatched':
+        flash('Este pedido no está en estado despachado.', 'error')
+        return redirect(url_for('dashboard.index'))
+        
+    order.status = 'delivered'
+    
+    # Increase local inventory
+    for item in order.items:
+        local_inv = BuildingInventory.query.filter_by(
+            building_id=order.building_id,
+            product_id=item.product_id
+        ).first()
+        
+        if local_inv:
+            local_inv.quantity += item.quantity
+        else:
+            new_local_inv = BuildingInventory(
+                building_id=order.building_id,
+                product_id=item.product_id,
+                quantity=item.quantity
+            )
+            db.session.add(new_local_inv)
+
+    db.session.commit()
+    flash('¡Recepción confirmada! El stock ha ingresado a tu inventario local.', 'success')
+    return redirect(url_for('dashboard.index'))
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HTMX: Add an item to the order

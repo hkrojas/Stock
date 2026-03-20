@@ -15,7 +15,7 @@
                 <input type="text" id="searchInput" placeholder="Buscar edificio..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#FAAC2A] focus:ring-2 focus:ring-[#FAAC2A]/20 transition-all text-[#00205B]">
                 <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            {% if current_user.role == 'superadmin' and not session.get('view_as_admin') %}
+            {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
             <a href="{{ url_for('catalog.create_building') }}"
                class="gradient-btn w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] hover:bg-[#E5981D] rounded-xl shadow-md shadow-black/10 active:scale-95 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,7 +36,7 @@
                         <th class="px-6 py-4">Edificio</th>
                         <th class="px-6 py-4 text-center">Dptos.</th>
                         <th class="px-6 py-4 text-center">Administrador</th>
-                        {% if current_user.role == 'superadmin' and not session.get('view_as_admin') %}
+                        {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                         <th class="px-6 py-4 text-right">Acciones</th>
                         {% else %}
                         <th class="px-6 py-4 text-right"></th>
@@ -75,7 +75,7 @@
                                 <span class="text-xs text-slate-400 italic">Sin asignar</span>
                             {% endif %}
                         </td>
-                        {% if current_user.role == 'superadmin' and not session.get('view_as_admin') %}
+                        {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ url_for('catalog.edit_building', building_id=building.id) }}"

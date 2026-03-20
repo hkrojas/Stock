@@ -41,23 +41,18 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         Dashboard
                     </a>
-                     {% if current_user.role == 'superadmin' and not session.get('view_as_admin') %}
+                     {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                     <a href="{{ url_for('dispatch.list_pending') }}"
                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                         Despacho
                     </a>
                     {% endif %}
-                    {% if current_user.role in ['admin', 'superadmin'] and not session.get('view_as_admin') %}
+                    {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                     <a href="{{ url_for('catalog.warehouse') }}"
                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                         Almacén
-                    </a>
-                    <a href="{{ url_for('catalog.upload_csv') }}"
-                       class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                        CSV
                     </a>
                     <a href="{{ url_for('catalog.list_buildings') }}"
                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white/70 hover:text-[#FAAC2A] hover:bg-white/10 transition-all">
@@ -65,7 +60,7 @@
                         Edificios
                     </a>
                     {% endif %}
-                    {% if current_user.role == 'superadmin' and not session.get('view_as_admin') %}
+                    {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                     <a href="{{ url_for('catalog.list_admins') }}"
                        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white/70 hover:text-[#FAAC2A] hover:bg-white/10 transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -132,13 +127,13 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     Dashboard
                 </a>
-                {% if current_user.role == 'superadmin' and not session.get('view_as_admin') %}
+                {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                 <a href="{{ url_for('dispatch.list_pending') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
                     Despacho
                 </a>
                 {% endif %}
-                {% if current_user.role in ['admin', 'superadmin'] and not session.get('view_as_admin') %}
+                {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                 <a href="{{ url_for('catalog.warehouse') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-white/80 hover:text-white hover:bg-white/10 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                     Almacén
@@ -152,7 +147,7 @@
                     Edificios
                 </a>
                 {% endif %}
-                {% if current_user.role == 'superadmin' and not session.get('view_as_admin') %}
+                {% if current_user.role in ['superadmin', 'manager'] and not session.get('view_as_admin') %}
                 <a href="{{ url_for('catalog.list_admins') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-[#FAAC2A]/90 hover:text-[#FAAC2A] hover:bg-white/10 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     Usuarios

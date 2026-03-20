@@ -80,6 +80,17 @@ def index():
         BuildingInventory.quantity <= Product.stock_minimo
     ).all()
 
+    costos_por_edificio = db.session.query(
+        Building.name,
+        func.coalesce(func.sum(OrderItem.quantity * OrderItem.precio_unitario), 0).label('gasto_total')
+    ).join(
+        Order, Building.id == Order.building_id
+    ).join(
+        OrderItem, Order.id == OrderItem.order_id
+    ).filter(
+        Order.status.in_(['dispatched', 'delivered'])
+    ).group_by(Building.name).order_by(db.text('gasto_total DESC')).all()
+
     pedidos_por_edificio = db.session.query(
         Building.name,
         func.count(Order.id).label('total_pedidos')
@@ -113,6 +124,7 @@ def index():
         total_productos=total_productos,
         alertas_stock=alertas_stock,
         alertas_edificios=alertas_edificios,
+        costos_por_edificio=costos_por_edificio,
         chart_edificios_labels=chart_edificios_labels,
         chart_edificios_data=chart_edificios_data,
         chart_productos_labels=chart_productos_labels,

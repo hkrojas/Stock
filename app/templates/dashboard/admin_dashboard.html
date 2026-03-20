@@ -159,41 +159,53 @@
         {% if historial_pedidos %}
         <ul class="divide-y divide-slate-100">
             {% for order in historial_pedidos %}
-            <li>
-                <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="px-5 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 border-l-2 border-transparent hover:border-[#FAAC2A] transition-all group cursor-pointer">
-                    <div class="flex items-center gap-4 min-w-0">
-                        <!-- Order number custom badge -->
-                        <div class="w-10 h-10 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#00205B] group-hover:border-[#00205B] shadow-sm transition-all">
-                            <span class="text-xs font-bold text-slate-500 tracking-wider group-hover:text-[#FAAC2A] transition-colors">#{{ order.id }}</span>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[13px] font-extrabold text-[#00205B] truncate group-hover:text-[#FAAC2A] transition-colors">{{ order.building.name }}</p>
-                            <p class="text-xs text-slate-400 font-medium mt-0.5">
-                                {{ order.items|length }} PRODUCTO{{ 'S' if order.items|length != 1 }} <span class="mx-1.5 opacity-50">•</span>
-                                {{ order.created_at.strftime('%d/%m/%Y') }}
-                            </p>
-                        </div>
+            <li class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 hover:bg-slate-50 border-l-2 border-transparent hover:border-[#FAAC2A] transition-all group">
+                <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="absolute inset-0 z-0 cursor-pointer" title="Ver detalle del pedido"></a>
+                
+                <div class="flex items-center gap-4 min-w-0 relative z-10 pointer-events-none">
+                    <!-- Order number custom badge -->
+                    <div class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#00205B] group-hover:border-[#00205B] shadow-sm transition-all">
+                        <span class="text-xs font-bold text-slate-500 tracking-wider group-hover:text-[#FAAC2A] transition-colors">#{{ order.id }}</span>
                     </div>
-                    <div class="flex items-center gap-3 shrink-0">
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border
-                            {% if order.status == 'draft' %} bg-amber-50 text-amber-700 border-amber-200
-                            {% elif order.status == 'submitted' %} bg-emerald-50 text-emerald-700 border-emerald-200
-                            {% elif order.status == 'processing' %} bg-slate-50 text-slate-600 border-slate-200
-                            {% elif order.status == 'dispatched' %} bg-emerald-100 text-emerald-800 border-emerald-300
-                            {% else %} bg-slate-50 text-slate-600 border-slate-200 {% endif %}">
-                            {% if order.status == 'draft' %}Borrador
-                            {% elif order.status == 'submitted' %}Enviado
-                            {% elif order.status == 'processing' %}En Línea
-                            {% elif order.status == 'dispatched' %}Despachado
-                            {% else %}{{ order.status }}{% endif %}
-                        </span>
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#FAAC2A]/10 transition-colors">
-                            <svg class="w-4 h-4 text-slate-300 group-hover:text-[#FAAC2A] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </div>
+                    <div class="min-w-0">
+                        <p class="text-[13px] font-extrabold text-[#00205B] truncate group-hover:text-[#FAAC2A] transition-colors">{{ order.building.name }}</p>
+                        <p class="text-xs text-slate-400 font-medium mt-0.5">
+                            {{ order.items|length }} PRODUCTO{{ 'S' if order.items|length != 1 }} <span class="mx-1.5 opacity-50">•</span>
+                            {{ order.created_at.strftime('%d/%m/%Y') }}
+                        </p>
                     </div>
-                </a>
+                </div>
+                
+                <div class="flex items-center gap-3 shrink-0 relative z-10">
+                    {% if order.status == 'dispatched' %}
+                    <form method="POST" action="{{ url_for('orders.receive_order', order_id=order.id) }}">
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-sm hover:shadow-md transition-all text-[11px] font-black tracking-widest uppercase active:scale-95 border border-emerald-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            Confirmar Llegada
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <span class="text-[11px] font-black px-2.5 py-1.5 rounded-md uppercase tracking-wider border pointer-events-none
+                        {% if order.status == 'draft' %} bg-amber-50 text-amber-700 border-amber-200
+                        {% elif order.status == 'submitted' %} bg-amber-100 text-amber-800 border-amber-300
+                        {% elif order.status == 'processing' %} bg-blue-50 text-blue-700 border-blue-200
+                        {% elif order.status == 'dispatched' %} bg-indigo-50 text-indigo-700 border-indigo-200
+                        {% elif order.status == 'delivered' %} bg-emerald-50 text-emerald-700 border-emerald-200
+                        {% else %} bg-slate-50 text-slate-600 border-slate-200 {% endif %}">
+                        {% if order.status == 'draft' %}Borrador
+                        {% elif order.status == 'submitted' %}Enviado
+                        {% elif order.status == 'processing' %}En Proceso
+                        {% elif order.status == 'dispatched' %}En Tránsito
+                        {% elif order.status == 'delivered' %}Recibido
+                        {% else %}{{ order.status }}{% endif %}
+                    </span>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#FAAC2A]/10 transition-colors pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-300 group-hover:text-[#FAAC2A] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                </div>
             </li>
             {% endfor %}
         </ul>

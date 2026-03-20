@@ -12,7 +12,7 @@ def superadmin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def manager_required(f):
+def management_required(f):
     """Decorator that requires the user to be logged in AND have 'manager' or 'superadmin' role."""
     @wraps(f)
     @login_required
