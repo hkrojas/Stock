@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import abort, session
+from flask import abort, current_app, session
 from flask_login import current_user, login_required
 
 def superadmin_required(f):
@@ -9,7 +9,7 @@ def superadmin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'superadmin' or session.get('view_as_admin'):
             abort(403)
-        return f(*args, **kwargs)
+        return current_app.ensure_sync(f)(*args, **kwargs)
     return decorated_function
 
 def management_required(f):
@@ -26,7 +26,7 @@ def management_required(f):
         # We allow superadmins to bypass the toggle for critical views like the warehouse.
         if session.get('view_as_admin') and current_user.role != 'superadmin':
             abort(403)
-        return f(*args, **kwargs)
+        return current_app.ensure_sync(f)(*args, **kwargs)
     return decorated_function
 
 def admin_required(f):
@@ -36,5 +36,5 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role not in ('admin', 'superadmin'):
             abort(403)
-        return f(*args, **kwargs)
+        return current_app.ensure_sync(f)(*args, **kwargs)
     return decorated_function

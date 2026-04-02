@@ -5,7 +5,7 @@ import re
 from datetime import date, datetime
 from typing import Any
 
-import requests
+import httpx
 from flask import current_app, session
 
 
@@ -40,10 +40,6 @@ def _normalize_payload(payload: Any) -> Any:
     return _normalize_scalar(payload)
 
 
-# Module level session for connection pooling across APIClient instances
-_shared_session = requests.Session()
-
-
 class APIClient:
     """HTTP client for Flask -> FastAPI calls using the access token issued by FastAPI."""
 
@@ -58,7 +54,7 @@ class APIClient:
         if self.token:
             self.headers["Authorization"] = f"Bearer {self.token}"
 
-    def _request(
+    async def _request(
         self,
         method: str,
         path: str,
@@ -70,38 +66,39 @@ class APIClient:
         return_response: bool = False,
         stream: bool = False,
     ) -> Any:
-        # Use headers but don't modify the shared session's own headers
         request_headers = self.headers.copy()
         if files:
+            request_headers.pop("content-type", None)
             request_headers.pop("Content-Type", None)
 
-        # Call with shared session to reuse TCP connections
-        response = _shared_session.request(
-            method,
-            f"{self.base_url}{path}",
-            headers=request_headers,
-            params=params,
-            json=json,
-            data=data,
-            files=files,
-            timeout=30,
-            stream=stream,
-        )
-        response.raise_for_status()
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            request = client.build_request(
+                method,
+                f"{self.base_url}{path}",
+                headers=request_headers,
+                params=params,
+                json=json,
+                data=data,
+                files=files,
+            )
+            response = await client.send(request, stream=stream)
+            if stream:
+                await response.aread()
+            response.raise_for_status()
 
-        if return_response:
-            return response
+            if return_response:
+                return response
 
-        if not response.content:
-            return None
+            if not response.content:
+                return None
 
-        content_type = response.headers.get("content-type", "")
-        if "application/json" in content_type:
-            return _normalize_payload(response.json())
+            content_type = response.headers.get("content-type", "")
+            if "application/json" in content_type:
+                return _normalize_payload(response.json())
 
-        return response.text
+            return response.text
 
-    def get(
+    async def get(
         self,
         path: str,
         params: dict[str, Any] | list[tuple[str, Any]] | None = None,
@@ -109,9 +106,9 @@ class APIClient:
         return_response: bool = False,
         stream: bool = False,
     ) -> Any:
-        return self._request("GET", path, params=params, return_response=return_response, stream=stream)
+        return await self._request("GET", path, params=params, return_response=return_response, stream=stream)
 
-    def post(
+    async def post(
         self,
         path: str,
         json: Any = None,
@@ -122,7 +119,7 @@ class APIClient:
         return_response: bool = False,
         stream: bool = False,
     ) -> Any:
-        return self._request(
+        return await self._request(
             "POST",
             path,
             params=params,
@@ -133,7 +130,7 @@ class APIClient:
             stream=stream,
         )
 
-    def put(
+    async def put(
         self,
         path: str,
         json: Any = None,
@@ -144,7 +141,7 @@ class APIClient:
         return_response: bool = False,
         stream: bool = False,
     ) -> Any:
-        return self._request(
+        return await self._request(
             "PUT",
             path,
             params=params,
@@ -155,7 +152,7 @@ class APIClient:
             stream=stream,
         )
 
-    def patch(
+    async def patch(
         self,
         path: str,
         json: Any = None,
@@ -163,19 +160,19 @@ class APIClient:
         params: dict[str, Any] | list[tuple[str, Any]] | None = None,
         return_response: bool = False,
     ) -> Any:
-        return self._request("PATCH", path, params=params, json=json, return_response=return_response)
+        return await self._request("PATCH", path, params=params, json=json, return_response=return_response)
 
-    def delete(
+    async def delete(
         self,
         path: str,
         *,
         params: dict[str, Any] | list[tuple[str, Any]] | None = None,
         return_response: bool = False,
     ) -> Any:
-        return self._request("DELETE", path, params=params, return_response=return_response)
+        return await self._request("DELETE", path, params=params, return_response=return_response)
 
     @staticmethod
-    def error_detail(exc: requests.HTTPError) -> str:
+    def error_detail(exc: httpx.HTTPError) -> str:
         try:
             return exc.response.json().get("detail", str(exc))
         except Exception:

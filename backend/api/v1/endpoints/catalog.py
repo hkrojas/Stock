@@ -2,6 +2,7 @@ import csv
 import io
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
@@ -144,6 +145,7 @@ async def import_csv(
     db.add(new_upload)
     db.flush()
 
+    parsed_rows = []
     for row_num, row in enumerate(reader, start=2):
         try:
             sku = row.get("sku", "").strip()
@@ -162,45 +164,114 @@ async def import_csv(
             precio = float(precio_str) if precio_str else 0.0
             stock = int(stock_str) if stock_str else 0
 
-            product = None
-            if sku:
-                product = db.query(models.Product).filter(models.Product.sku == sku).first()
-            if not product:
-                product = db.query(models.Product).filter(models.Product.name == nombre).first()
-
-            if product:
-                if sku:
-                    product.sku = sku
-                product.name = nombre
-                if unidad:
-                    product.unit = unidad
-                product.precio = precio
-                if descripcion:
-                    product.description = descripcion
-                if categoria:
-                    product.categoria = categoria
-                if imagen_url:
-                    product.imagen_url = imagen_url
-                if stock > 0:
-                    product.stock_actual = stock
-                updated_count += 1
-            else:
-                new_product = models.Product(
-                    sku=sku if sku else None,
-                    name=nombre,
-                    unit=unidad if unidad else "Unidad",
-                    categoria=categoria if categoria else "General",
-                    precio=precio,
-                    description=descripcion if descripcion else None,
-                    imagen_url=imagen_url if imagen_url else "/static/img/default-product.png",
-                    stock_actual=stock,
-                    source_csv_id=new_upload.id,
-                )
-                db.add(new_product)
-                created_count += 1
+            parsed_rows.append(
+                {
+                    "sku": sku or None,
+                    "name": nombre,
+                    "unit": unidad,
+                    "precio": precio,
+                    "description": descripcion,
+                    "categoria": categoria,
+                    "imagen_url": imagen_url,
+                    "stock_actual": stock,
+                }
+            )
         except Exception as e:
             error_rows.append(f"Fila {row_num}: {str(e)}")
             continue
+
+    filters = []
+    sku_values = {row["sku"] for row in parsed_rows if row["sku"]}
+    name_values = {row["name"] for row in parsed_rows}
+    if sku_values:
+        filters.append(models.Product.sku.in_(sku_values))
+    if name_values:
+        filters.append(models.Product.name.in_(name_values))
+
+    existing_products = db.query(models.Product).filter(or_(*filters)).all() if filters else []
+    existing_by_sku = {product.sku: product for product in existing_products if product.sku}
+    existing_by_name = {product.name: product for product in existing_products}
+    pending_inserts_by_sku = {}
+    pending_inserts_by_name = {}
+    update_mappings = {}
+    insert_mappings = []
+
+    for row in parsed_rows:
+        product = None
+        if row["sku"]:
+            product = existing_by_sku.get(row["sku"]) or pending_inserts_by_sku.get(row["sku"])
+        if not product:
+            product = existing_by_name.get(row["name"]) or pending_inserts_by_name.get(row["name"])
+
+        if isinstance(product, dict):
+            updated_count += 1
+            if row["sku"]:
+                product["sku"] = row["sku"]
+                pending_inserts_by_sku[row["sku"]] = product
+            product["name"] = row["name"]
+            if row["unit"]:
+                product["unit"] = row["unit"]
+            product["precio"] = row["precio"]
+            if row["description"]:
+                product["description"] = row["description"]
+            if row["categoria"]:
+                product["categoria"] = row["categoria"]
+            if row["imagen_url"]:
+                product["imagen_url"] = row["imagen_url"]
+            if row["stock_actual"] > 0:
+                product["stock_actual"] = row["stock_actual"]
+            pending_inserts_by_name[row["name"]] = product
+            continue
+
+        if product:
+            updated_count += 1
+            mapping = update_mappings.get(product.id)
+            if not mapping:
+                mapping = {"id": product.id}
+                update_mappings[product.id] = mapping
+
+            if row["sku"]:
+                mapping["sku"] = row["sku"]
+                existing_by_sku[row["sku"]] = product
+            mapping["name"] = row["name"]
+            existing_by_name[row["name"]] = product
+            if row["unit"]:
+                mapping["unit"] = row["unit"]
+            mapping["precio"] = row["precio"]
+            if row["description"]:
+                mapping["description"] = row["description"]
+            if row["categoria"]:
+                mapping["categoria"] = row["categoria"]
+            if row["imagen_url"]:
+                mapping["imagen_url"] = row["imagen_url"]
+            if row["stock_actual"] > 0:
+                mapping["stock_actual"] = row["stock_actual"]
+            continue
+
+        insert_mapping = {
+            "sku": row["sku"],
+            "name": row["name"],
+            "unit": row["unit"] or "Unidad",
+            "categoria": row["categoria"] or "General",
+            "precio": row["precio"],
+            "description": row["description"] or None,
+            "imagen_url": row["imagen_url"] or "/static/img/default-product.png",
+            "stock_actual": row["stock_actual"],
+            "stock_minimo": 10,
+            "is_active": True,
+            "source_csv_id": new_upload.id,
+            "is_dynamic": False,
+        }
+        insert_mappings.append(insert_mapping)
+        created_count += 1
+        if row["sku"]:
+            pending_inserts_by_sku[row["sku"]] = insert_mapping
+        pending_inserts_by_name[row["name"]] = insert_mapping
+
+    if insert_mappings:
+        db.bulk_insert_mappings(models.Product, insert_mappings)
+    if update_mappings:
+        db.bulk_update_mappings(models.Product, list(update_mappings.values()))
 
     new_upload.products_created = created_count
     new_upload.products_updated = updated_count

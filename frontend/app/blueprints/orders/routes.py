@@ -12,11 +12,11 @@ from app.utils.decorators import admin_required
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/buildings')
 @admin_required
-def list_buildings():
+async def list_buildings():
     """List buildings assigned to the current logged-in admin."""
     api = APIClient(current_user.id)
     try:
-        buildings = api.get('/buildings/')
+        buildings = await api.get('/buildings/')
         return render_template('orders/list_buildings.html', buildings=buildings, user=current_user)
     except Exception as e:
         flash(f'Error al listar edificios: {str(e)}', 'error')
@@ -28,12 +28,12 @@ def list_buildings():
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/create/<int:building_id>', methods=['POST'])
 @admin_required
-def create_order(building_id):
+async def create_order(building_id):
     """Create a new draft order for the selected building."""
     api = APIClient(current_user.id)
     try:
         order_data = {"building_id": building_id}
-        order = api.post('/orders/', json=order_data)
+        order = await api.post('/orders/', json=order_data)
         
         if order.get('status') == 'draft':
             flash(f'Pedido en borrador abierto.', 'info')
@@ -49,15 +49,15 @@ def create_order(building_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/<int:order_id>')
 @admin_required
-def order_detail(order_id):
+async def order_detail(order_id):
     """View the details of a specific order (draft) and allow adding products."""
     api = APIClient(current_user.id)
     try:
-        order = api.get(f'/orders/{order_id}')
-        products = api.get('/catalog/')
+        order = await api.get(f'/orders/{order_id}')
+        products = await api.get('/catalog/')
 
         critical_inventory = []
-        inventory = api.get('/inventory/', params={'building_id': order['building_id']})
+        inventory = await api.get('/inventory/', params={'building_id': order['building_id']})
         for inv in inventory:
             if inv['quantity'] < inv['product']['stock_minimo']:
                 critical_inventory.append(inv)
@@ -69,11 +69,11 @@ def order_detail(order_id):
 
 @orders_bp.route('/<int:order_id>/receive', methods=['POST'])
 @admin_required
-def receive_order(order_id):
+async def receive_order(order_id):
     """Confirm receipt of a dispatched order and increase local building inventory."""
     api = APIClient(current_user.id)
     try:
-        api.post(f'/orders/{order_id}/receive')
+        await api.post(f'/orders/{order_id}/receive')
         flash('¡Recepción confirmada! El stock ha ingresado a tu inventario local.', 'success')
     except Exception as e:
         flash(f'Error al confirmar recepción: {str(e)}', 'error')
@@ -86,7 +86,7 @@ def receive_order(order_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/<int:order_id>/add_item', methods=['POST'])
 @admin_required
-def add_item(order_id):
+async def add_item(order_id):
     """HTMX endpoint to add an item to the order."""
     api = APIClient(current_user.id)
     product_id = request.form.get('product_id', type=int)
@@ -94,10 +94,10 @@ def add_item(order_id):
     
     try:
         item_data = {"product_id": product_id, "quantity": quantity}
-        api.post(f'/orders/{order_id}/items', json=item_data)
+        await api.post(f'/orders/{order_id}/items', json=item_data)
         
         # Get updated order for partial render
-        order = api.get(f'/orders/{order_id}')
+        order = await api.get(f'/orders/{order_id}')
         return render_template('orders/partials/order_items.html', order=order)
     except Exception as e:
         return f'<div class="alert alert-danger">{str(e)}</div>', 400
@@ -108,13 +108,13 @@ def add_item(order_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/<int:order_id>/remove_item/<int:item_id>', methods=['POST'])
 @admin_required
-def remove_item(order_id, item_id):
+async def remove_item(order_id, item_id):
     """HTMX endpoint to remove an item from the order."""
     api = APIClient(current_user.id)
     try:
-        api.delete(f'/orders/{order_id}/items/{item_id}')
+        await api.delete(f'/orders/{order_id}/items/{item_id}')
         # Get updated order for partial render
-        order = api.get(f'/orders/{order_id}')
+        order = await api.get(f'/orders/{order_id}')
         return render_template('orders/partials/order_items.html', order=order)
     except Exception as e:
         return f'<div class="alert alert-danger">{str(e)}</div>', 400
@@ -125,11 +125,11 @@ def remove_item(order_id, item_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/<int:order_id>/submit', methods=['POST'])
 @admin_required
-def submit_order(order_id):
+async def submit_order(order_id):
     """Move an order from 'draft' to 'submitted'."""
     api = APIClient(current_user.id)
     try:
-        api.post(f'/orders/{order_id}/submit')
+        await api.post(f'/orders/{order_id}/submit')
         flash(f'Pedido enviado correctamente. El almacén lo procesará pronto.', 'success')
     except Exception as e:
         flash(f'Error al enviar pedido: {str(e)}', 'error')
@@ -142,11 +142,11 @@ def submit_order(order_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/<int:order_id>/reopen', methods=['POST'])
 @admin_required
-def reopen_order(order_id):
+async def reopen_order(order_id):
     """Move an order from 'submitted' back to 'draft' so the admin can edit it."""
     api = APIClient(current_user.id)
     try:
-        api.post(f'/orders/{order_id}/reopen')
+        await api.post(f'/orders/{order_id}/reopen')
         flash('El pedido se ha reabierto.', 'info')
     except Exception as e:
         flash(f'Error al reabrir pedido: {str(e)}', 'error')
@@ -159,11 +159,11 @@ def reopen_order(order_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @orders_bp.route('/my_inventory')
 @admin_required
-def my_inventory():
+async def my_inventory():
     """View local building inventory for the current admin."""
     api = APIClient(current_user.id)
     try:
-        inventory = api.get('/inventory/')
+        inventory = await api.get('/inventory/')
         return render_template('orders/my_inventory.html', inventory=inventory)
     except Exception as e:
         flash(f'Error al cargar inventario: {str(e)}', 'error')
@@ -171,14 +171,14 @@ def my_inventory():
 
 @orders_bp.route('/consume/<int:inventory_id>', methods=['POST'])
 @admin_required
-def consume_inventory(inventory_id):
+async def consume_inventory(inventory_id):
     """HTMX endpoint to report consumption of local inventory."""
     api = APIClient(current_user.id)
     quantity = request.form.get('quantity', 1, type=int)
     
     try:
         consume_data = {"quantity": quantity}
-        inv = api.post(f'/inventory/{inventory_id}/consume', json=consume_data)
+        inv = await api.post(f'/inventory/{inventory_id}/consume', json=consume_data)
         return render_template('orders/partials/inventory_card.html', inv=inv)
     except Exception as e:
         return f'<div class="alert alert-danger">{str(e)}</div>', 400
@@ -186,7 +186,7 @@ def consume_inventory(inventory_id):
 
 @orders_bp.route('/adjust_stock/<int:inventory_id>', methods=['POST'])
 @admin_required
-def adjust_stock(inventory_id):
+async def adjust_stock(inventory_id):
     """HTMX endpoint to manually adjust stock."""
     api = APIClient(current_user.id)
     action = request.form.get('action')
@@ -196,11 +196,11 @@ def adjust_stock(inventory_id):
         # First get current to calculate new total if needed, or if API supports +/-
         # Our the backend adjust seems to set absolute value based onschemas
         # So we need to fetch first
-        curr = api.get(f'/inventory/{inventory_id}')
+        curr = await api.get(f'/inventory/{inventory_id}')
         new_qty = curr['quantity'] + quantity if action == 'add' else curr['quantity'] - quantity
         
         adjust_data = {"quantity": max(0, new_qty)}
-        api.post(f'/inventory/{inventory_id}/adjust', json=adjust_data)
+        await api.post(f'/inventory/{inventory_id}/adjust', json=adjust_data)
         
         flash(f'Stock actualizado correctamente.', 'success')
     except Exception as e:
@@ -211,7 +211,7 @@ def adjust_stock(inventory_id):
 
 @orders_bp.route('/my_orders')
 @admin_required
-def my_orders():
+async def my_orders():
     """Full paginated order history with state tracking for the current admin."""
     api = APIClient(current_user.id)
     status_filter = request.args.get('status', '')
@@ -222,8 +222,8 @@ def my_orders():
         if status_filter: params['status'] = status_filter
         if building_filter: params['building_id'] = building_filter
         
-        orders = api.get('/orders/', params=params)
-        buildings = api.get('/buildings/')
+        orders = await api.get('/orders/', params=params)
+        buildings = await api.get('/buildings/')
         
         return render_template('orders/my_orders.html',
             orders=orders, buildings=buildings,
@@ -235,11 +235,11 @@ def my_orders():
 
 @orders_bp.route('/<int:order_id>/cancel', methods=['POST'])
 @admin_required
-def cancel_order(order_id):
+async def cancel_order(order_id):
     """Cancel a draft or submitted order."""
     api = APIClient(current_user.id)
     try:
-        api.post(f'/orders/{order_id}/cancel')
+        await api.post(f'/orders/{order_id}/cancel')
         flash(f'Pedido cancelado.', 'info')
     except Exception as e:
         flash(f'Error al cancelar: {str(e)}', 'error')
@@ -248,7 +248,7 @@ def cancel_order(order_id):
 
 @orders_bp.route('/consumption_report')
 @admin_required
-def consumption_report():
+async def consumption_report():
     """View consumption logs grouped by building and product."""
     api = APIClient(current_user.id)
     building_filter = request.args.get('building_id', type=int)
@@ -257,8 +257,8 @@ def consumption_report():
         params = {}
         if building_filter: params['building_id'] = building_filter
         
-        rows = api.get('/orders/consumption-report', params=params)
-        buildings = api.get('/buildings/')
+        rows = await api.get('/orders/consumption-report', params=params)
+        buildings = await api.get('/buildings/')
         
         return render_template('orders/consumption_report.html',
             rows=rows, buildings=buildings,
@@ -270,7 +270,7 @@ def consumption_report():
 
 @orders_bp.route('/add_inventory', methods=['GET', 'POST'])
 @admin_required
-def add_inventory_item():
+async def add_inventory_item():
     """Add a new product to local building inventory."""
     api = APIClient(current_user.id)
     if request.method == 'POST':
@@ -284,7 +284,7 @@ def add_inventory_item():
                 "building_id": building_id,
                 "quantity": quantity
             }
-            api.post('/inventory/', json=inv_data)
+            await api.post('/inventory/', json=inv_data)
             flash(f'Producto agregado al inventario del edificio.', 'success')
             return redirect(url_for('orders.my_inventory'))
         except Exception as e:
@@ -292,8 +292,8 @@ def add_inventory_item():
             return redirect(url_for('orders.add_inventory_item'))
     
     try:
-        buildings = api.get('/buildings/')
-        products = api.get('/catalog/')
+        buildings = await api.get('/buildings/')
+        products = await api.get('/catalog/')
         return render_template('orders/add_inventory.html', buildings=buildings, products=products)
     except Exception as e:
         flash(f'Error al cargar datos: {str(e)}', 'error')

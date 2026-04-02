@@ -1,6 +1,6 @@
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from backend import models, schemas
 from backend.api import deps
 from backend.core.security import get_password_hash
@@ -15,7 +15,9 @@ def list_users(
     role: Optional[str] = None,
 ) -> Any:
     """List all admin and manager users."""
-    query = db.query(models.User).filter(models.User.role.in_(["admin", "manager"]))
+    query = db.query(models.User).options(
+        selectinload(models.User.assigned_buildings)
+    ).filter(models.User.role.in_(["admin", "manager"]))
     if role in {"admin", "manager"}:
         query = query.filter(models.User.role == role)
     users = query.order_by(models.User.name.asc(), models.User.username.asc()).all()

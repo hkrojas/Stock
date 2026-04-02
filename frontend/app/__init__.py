@@ -25,7 +25,7 @@ def create_app(config_class=Config):
             return User(user_data)
 
         try:
-            user_data = APIClient(token=token).get("/auth/me")
+            user_data = app.ensure_sync(APIClient(token=token).get)("/auth/me")
             if user_data:
                 # Cache the dict in session for subsequent requests
                 # Convert list of objects to list of dicts if necessary (role assigned_buildings)

@@ -1,7 +1,7 @@
 from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from backend import models, schemas
 from backend.api import deps
 
@@ -28,10 +28,18 @@ def read_orders(
 ) -> Any:
     """List orders. Admin sees their buildings; superadmin/manager sees all."""
     if current_user.role in ("superadmin", "manager"):
-        query = db.query(models.Order)
+        query = db.query(models.Order).options(
+            selectinload(models.Order.items).joinedload(models.OrderItem.product),
+            joinedload(models.Order.building),
+            joinedload(models.Order.created_by),
+        )
     else:
         my_building_ids = [b.id for b in current_user.assigned_buildings]
-        query = db.query(models.Order).filter(models.Order.building_id.in_(my_building_ids))
+        query = db.query(models.Order).options(
+            selectinload(models.Order.items).joinedload(models.OrderItem.product),
+            joinedload(models.Order.building),
+            joinedload(models.Order.created_by),
+        ).filter(models.Order.building_id.in_(my_building_ids))
 
     if status:
         query = query.filter(models.Order.status == status)

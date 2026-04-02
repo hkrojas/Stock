@@ -10,11 +10,11 @@ from app.utils.decorators import management_required
 
 @dispatch_bp.route("/pending")
 @management_required
-def list_pending():
+async def list_pending():
     """List submitted orders ready for consolidation."""
     api = APIClient(current_user.id)
     try:
-        orders = api.get("/dispatch/pending-orders")
+        orders = await api.get("/dispatch/pending-orders")
         return render_template("dispatch/pending_orders.html", orders=orders)
     except Exception as exc:
         flash(f"Error al listar pedidos pendientes: {str(exc)}", "error")
@@ -23,7 +23,7 @@ def list_pending():
 
 @dispatch_bp.route("/consolidate", methods=["POST"])
 @management_required
-def consolidate_orders():
+async def consolidate_orders():
     """Create a dispatch batch from selected submitted orders."""
     api = APIClient(current_user.id)
     order_ids = [int(order_id) for order_id in request.form.getlist("order_ids") if order_id.isdigit()]
@@ -32,7 +32,7 @@ def consolidate_orders():
         return redirect(url_for("dispatch.list_pending"))
 
     try:
-        result = api.post(
+        result = await api.post(
             "/dispatch/consolidate",
             json=order_ids,
         )
@@ -45,11 +45,11 @@ def consolidate_orders():
 
 @dispatch_bp.route("/batch/<int:batch_id>")
 @management_required
-def batch_detail(batch_id):
+async def batch_detail(batch_id):
     """Show consolidated dispatch batch detail."""
     api = APIClient(current_user.id)
     try:
-        batch = api.get(f"/dispatch/batch/{batch_id}")
+        batch = await api.get(f"/dispatch/batch/{batch_id}")
         return render_template("dispatch/batch_detail.html", batch=batch)
     except Exception as exc:
         flash(f"Error al cargar lote: {str(exc)}", "error")
@@ -58,11 +58,11 @@ def batch_detail(batch_id):
 
 @dispatch_bp.route("/batch/<int:batch_id>/picking")
 @management_required
-def picking(batch_id):
+async def picking(batch_id):
     """Render the final picking confirmation view."""
     api = APIClient(current_user.id)
     try:
-        batch = api.get(f"/dispatch/batch/{batch_id}")
+        batch = await api.get(f"/dispatch/batch/{batch_id}")
         return render_template("dispatch/picking.html", batch=batch)
     except Exception as exc:
         flash(f"Error al cargar picking: {str(exc)}", "error")
@@ -71,11 +71,11 @@ def picking(batch_id):
 
 @dispatch_bp.route("/batch/<int:batch_id>/confirm", methods=["POST"])
 @management_required
-def confirm_dispatch(batch_id):
+async def confirm_dispatch(batch_id):
     """Confirm dispatch and deduct central stock."""
     api = APIClient(current_user.id)
     try:
-        api.post(f"/dispatch/batch/{batch_id}/confirm")
+        await api.post(f"/dispatch/batch/{batch_id}/confirm")
         flash("Despacho confirmado y stock central actualizado.", "success")
     except Exception as exc:
         flash(f"Error al confirmar despacho: {str(exc)}", "error")
@@ -84,13 +84,13 @@ def confirm_dispatch(batch_id):
 
 @dispatch_bp.route("/batch/<int:batch_id>/reject-order/<int:order_id>", methods=["POST"])
 @management_required
-def reject_order(batch_id, order_id):
+async def reject_order(batch_id, order_id):
     """Return one order from a pending batch to the admin with a rejection note."""
     api = APIClient(current_user.id)
     note = request.form.get("rejection_note", "").strip()
     params = {"rejection_note": note} if note else None
     try:
-        api.post(f"/dispatch/batch/{batch_id}/reject-order/{order_id}", params=params)
+        await api.post(f"/dispatch/batch/{batch_id}/reject-order/{order_id}", params=params)
         flash("Pedido devuelto al administrador.", "success")
     except Exception as exc:
         flash(f"Error al rechazar pedido: {str(exc)}", "error")
@@ -99,11 +99,11 @@ def reject_order(batch_id, order_id):
 
 @dispatch_bp.route("/batch/<int:batch_id>/export_consolidated")
 @management_required
-def export_batch(batch_id):
+async def export_batch(batch_id):
     """Download the consolidated PDF for a batch."""
     api = APIClient(current_user.id)
     try:
-        response = api.get(
+        response = await api.get(
             f"/dispatch/batch/{batch_id}/export/consolidated",
             return_response=True,
             stream=True,
@@ -121,11 +121,11 @@ def export_batch(batch_id):
 
 @dispatch_bp.route("/batch/<int:batch_id>/export_buildings")
 @management_required
-def export_batch_buildings(batch_id):
+async def export_batch_buildings(batch_id):
     """Download the per-building PDF for a batch."""
     api = APIClient(current_user.id)
     try:
-        response = api.get(
+        response = await api.get(
             f"/dispatch/batch/{batch_id}/export/buildings",
             return_response=True,
             stream=True,
@@ -143,11 +143,11 @@ def export_batch_buildings(batch_id):
 
 @dispatch_bp.route("/history")
 @management_required
-def history():
+async def history():
     """Show dispatch history."""
     api = APIClient(current_user.id)
     try:
-        data = api.get("/dispatch/history")
+        data = await api.get("/dispatch/history")
         return render_template(
             "dispatch/history.html",
             batches=data.get("batches", []),
@@ -160,11 +160,11 @@ def history():
 
 @dispatch_bp.route("/purchases")
 @management_required
-def list_purchases():
+async def list_purchases():
     """List direct purchases."""
     api = APIClient(current_user.id)
     try:
-        purchases = api.get("/dispatch/purchases/")
+        purchases = await api.get("/dispatch/purchases/")
         return render_template("dispatch/purchases/list.html", purchases=purchases)
     except Exception as exc:
         flash(f"Error al cargar compras: {str(exc)}", "error")
@@ -173,11 +173,11 @@ def list_purchases():
 
 @dispatch_bp.route("/purchases/<int:purchase_id>")
 @management_required
-def purchase_detail(purchase_id):
+async def purchase_detail(purchase_id):
     """Show one purchase detail."""
     api = APIClient(current_user.id)
     try:
-        purchase = api.get(f"/dispatch/purchases/{purchase_id}")
+        purchase = await api.get(f"/dispatch/purchases/{purchase_id}")
         return render_template("dispatch/purchases/detail.html", purchase=purchase)
     except Exception as exc:
         flash(f"Error al cargar compra: {str(exc)}", "error")
@@ -186,7 +186,7 @@ def purchase_detail(purchase_id):
 
 @dispatch_bp.route("/purchases/new", methods=["GET", "POST"])
 @management_required
-def create_purchase():
+async def create_purchase():
     """Create a direct purchase through the FastAPI backend."""
     api = APIClient(current_user.id)
     if request.method == "POST":
@@ -210,7 +210,7 @@ def create_purchase():
                     product_name = new_product_names[new_name_index].strip()
                     new_name_index += 1
                     if product_name:
-                        product = api.post(
+                        product = await api.post(
                             "/catalog/",
                             json={
                                 "sku": None,
@@ -245,7 +245,7 @@ def create_purchase():
                 flash("Debes agregar al menos un artículo válido.", "warning")
                 return redirect(url_for("dispatch.create_purchase"))
 
-            purchase = api.post(
+            purchase = await api.post(
                 "/dispatch/purchases/",
                 json={
                     "supplier": request.form.get("supplier", "").strip() or None,
@@ -262,7 +262,7 @@ def create_purchase():
             return redirect(url_for("dispatch.create_purchase"))
 
     try:
-        products = api.get("/catalog/all")
+        products = await api.get("/catalog/all")
         return render_template("dispatch/purchases/create.html", products=products)
     except Exception as exc:
         flash(f"Error al cargar catálogo para compras: {str(exc)}", "error")

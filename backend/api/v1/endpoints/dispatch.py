@@ -1,8 +1,9 @@
 import io
+from datetime import datetime, timezone
 from typing import Any, List
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from backend import models, schemas
 from backend.api import deps
 
@@ -124,13 +125,24 @@ def confirm_dispatch(
     current_user: models.User = Depends(deps.get_current_active_management),
 ) -> Any:
     """Confirm dispatch: validate stock, deduct from central, mark orders dispatched."""
-    batch = db.query(models.DispatchBatch).filter(models.DispatchBatch.id == id).first()
+    batch = db.query(models.DispatchBatch).options(
+        selectinload(models.DispatchBatch.items),
+        selectinload(models.DispatchBatch.orders),
+    ).filter(models.DispatchBatch.id == id).first()
     if not batch or batch.status != "pending":
         raise HTTPException(status_code=400, detail="Invalid batch or status")
 
+    product_ids = [item.product_id for item in batch.items]
+    products = db.query(models.Product).filter(
+        models.Product.id.in_(product_ids)
+    ).with_for_update().all() if product_ids else []
+    products_by_id = {product.id: product for product in products}
+
     stock_errors = []
+    product_updates = []
+    inventory_movements = []
     for item in batch.items:
-        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+        product = products_by_id.get(item.product_id)
         if product and product.stock_actual < item.total_quantity:
             stock_errors.append(
                 f"{product.name}: disponible {product.stock_actual}, requerido {item.total_quantity}"
@@ -139,23 +151,34 @@ def confirm_dispatch(
         raise HTTPException(status_code=400, detail="Stock insuficiente: " + " | ".join(stock_errors))
 
     for item in batch.items:
-        product = db.query(models.Product).filter(
-            models.Product.id == item.product_id
-        ).with_for_update().first()
+        product = products_by_id.get(item.product_id)
         if not product:
             continue
-        product.stock_actual -= item.total_quantity
-        db.add(models.InventoryMovement(
-            product_id=product.id,
-            quantity=item.total_quantity,
-            movement_type="out",
-            reference_id=batch.id,
-            created_by_id=current_user.id
-        ))
+        new_stock = product.stock_actual - item.total_quantity
+        product_updates.append({"id": product.id, "stock_actual": new_stock})
+        inventory_movements.append(
+            {
+                "product_id": product.id,
+                "quantity": item.total_quantity,
+                "movement_type": "out",
+                "reference_id": batch.id,
+                "created_by_id": current_user.id,
+                "created_at": datetime.now(timezone.utc),
+            }
+        )
+
+    if product_updates:
+        db.bulk_update_mappings(models.Product, product_updates)
+    if inventory_movements:
+        db.bulk_insert_mappings(models.InventoryMovement, inventory_movements)
 
     batch.status = "dispatched"
-    for order in batch.orders:
-        order.status = "dispatched"
+    order_ids = [order.id for order in batch.orders]
+    if order_ids:
+        db.query(models.Order).filter(models.Order.id.in_(order_ids)).update(
+            {models.Order.status: "dispatched"},
+            synchronize_session=False,
+        )
 
     db.commit()
     return {"message": "Dispatch confirmed and stock updated"}

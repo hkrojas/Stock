@@ -1,5 +1,5 @@
+import httpx
 from flask import current_app, jsonify, render_template, session
-import requests
 from flask_login import current_user, login_required
 from app.blueprints.dashboard import dashboard_bp
 from app.utils.api_client import APIClient
@@ -7,14 +7,14 @@ from app.utils.api_client import APIClient
 
 @dashboard_bp.route('/')
 @login_required
-def index():
+async def index():
     """Main hub: renders superadmin analytics OR admin operations panel, based on role."""
     api = APIClient(current_user.id)
 
     # ── Manager route: warehouse operations dashboard ──
     if current_user.role == 'manager' and not session.get('view_as_admin'):
         try:
-            data = api.get('/analytics/manager')
+            data = await api.get('/analytics/manager')
             return render_template('dashboard/manager_dashboard.html',
                 pedidos_submitted=data.get('pedidos_submitted'),
                 lotes_pendientes=data.get('lotes_pendientes'),
@@ -27,7 +27,7 @@ def index():
     # ── Admin route: show the admin's operational dashboard ──
     if current_user.role == 'admin' or session.get('view_as_admin'):
         try:
-            data = api.get('/analytics/admin')
+            data = await api.get('/analytics/admin')
             return render_template('dashboard/admin_dashboard.html',
                 buildings=data.get('buildings'),
                 pedidos_activos=data.get('pedidos_activos'),
@@ -40,7 +40,7 @@ def index():
 
     # ── Superadmin route: full analytics dashboard ──
     try:
-        data = api.get('/analytics/superadmin')
+        data = await api.get('/analytics/superadmin')
         return render_template('dashboard/index.html',
             total_pedidos_pendientes=data.get('total_pedidos_pendientes'),
             total_edificios_activos=data.get('total_edificios_activos'),
@@ -59,12 +59,13 @@ def index():
 
 @dashboard_bp.route('/api_status')
 @login_required
-def api_status():
+async def api_status():
     """Check if the FastAPI backend is reachable."""
     try:
         api_base = current_app.config["API_BASE_URL"]
         health_url = api_base.rsplit("/api/v1", 1)[0] + "/health"
-        response = requests.get(health_url, timeout=2)
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            response = await client.get(health_url)
         if response.status_code == 200:
             return jsonify({"status": "online", "message": "Backend connected"}), 200
         else:

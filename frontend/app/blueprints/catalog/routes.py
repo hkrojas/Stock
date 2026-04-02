@@ -12,7 +12,7 @@ from app.utils.api_client import APIClient
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/assign_building', methods=['GET', 'POST'])
 @management_required
-def assign_building():
+async def assign_building():
     api = APIClient(current_user.id)
     if request.method == 'POST':
         admin_id = request.form.get('admin_id')
@@ -23,7 +23,7 @@ def assign_building():
                 # Convert building_ids to integers
                 b_ids = [int(bid) for bid in building_ids if bid and bid != 'none']
                 if b_ids:
-                    api.post('/buildings/assign', json={"admin_id": int(admin_id), "building_ids": b_ids})
+                    await api.post('/buildings/assign', json={"admin_id": int(admin_id), "building_ids": b_ids})
                     flash('Edificios asignados correctamente.', 'success')
                 else:
                     flash('No se especificaron edificios válidos.', 'error')
@@ -34,8 +34,8 @@ def assign_building():
         return redirect(url_for('catalog.assign_building'))
 
     try:
-        admins = api.get('/users/', params={'role': 'admin'})
-        buildings = api.get('/buildings/')
+        admins = await api.get('/users/', params={'role': 'admin'})
+        buildings = await api.get('/buildings/')
         return render_template('catalog/assign_building.html', admins=admins, buildings=buildings)
     except Exception as e:
         flash(f'Error al cargar datos: {str(e)}', 'error')
@@ -47,7 +47,7 @@ def assign_building():
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings/new', methods=['GET', 'POST'])
 @management_required
-def create_building():
+async def create_building():
     api = APIClient(current_user.id)
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -78,7 +78,7 @@ def create_building():
                 "admin_id": int(admin_id) if admin_id and admin_id != 'none' else None,
                 "imagen_frontis": imagen_frontis
             }
-            api.post('/buildings/', json=building_data)
+            await api.post('/buildings/', json=building_data)
             flash(f'Edificio "{name}" creado correctamente.', 'success')
             return redirect(url_for('catalog.list_buildings'))
         except Exception as e:
@@ -86,7 +86,7 @@ def create_building():
              return redirect(url_for('catalog.create_building'))
 
     try:
-        admins = api.get('/users/', params={'role': 'admin'})
+        admins = await api.get('/users/', params={'role': 'admin'})
         return render_template('catalog/create_building.html', admins=admins)
     except Exception as e:
         flash(f'Error al cargar administradores: {str(e)}', 'error')
@@ -98,10 +98,10 @@ def create_building():
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings', methods=['GET'])
 @management_required
-def list_buildings():
+async def list_buildings():
     api = APIClient(current_user.id)
     try:
-        buildings = api.get('/buildings/')
+        buildings = await api.get('/buildings/')
         return render_template('catalog/list_buildings_admin.html', buildings=buildings)
     except Exception as e:
         flash(f'Error al listar edificios: {str(e)}', 'error')
@@ -113,10 +113,10 @@ def list_buildings():
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings/<int:building_id>/edit', methods=['GET', 'POST'])
 @management_required
-def edit_building(building_id):
+async def edit_building(building_id):
     api = APIClient(current_user.id)
     try:
-        building = api.get(f'/buildings/{building_id}')
+        building = await api.get(f'/buildings/{building_id}')
     except Exception as e:
         flash(f'Edificio no encontrado: {str(e)}', 'error')
         return redirect(url_for('catalog.list_buildings'))
@@ -149,7 +149,7 @@ def edit_building(building_id):
                 update_data["imagen_frontis"] = filename
 
         try:
-            api.put(f'/buildings/{building_id}', json=update_data)
+            await api.put(f'/buildings/{building_id}', json=update_data)
             flash(f'Edificio "{name}" actualizado correctamente.', 'success')
             return redirect(url_for('catalog.list_buildings'))
         except Exception as e:
@@ -157,7 +157,7 @@ def edit_building(building_id):
             return redirect(url_for('catalog.edit_building', building_id=building_id))
 
     try:
-        admins = api.get('/users/', params={'role': 'admin'})
+        admins = await api.get('/users/', params={'role': 'admin'})
         return render_template('catalog/edit_building.html', building=building, admins=admins)
     except Exception as e:
         flash(f'Error al cargar administradores: {str(e)}', 'error')
@@ -169,10 +169,10 @@ def edit_building(building_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/buildings/<int:building_id>/delete', methods=['POST'])
 @management_required
-def delete_building(building_id):
+async def delete_building(building_id):
     api = APIClient(current_user.id)
     try:
-        api.delete(f'/buildings/{building_id}')
+        await api.delete(f'/buildings/{building_id}')
         flash('Edificio eliminado correctamente.', 'success')
     except Exception as e:
         flash(f'Error al eliminar: {str(e)}', 'error')
@@ -183,7 +183,7 @@ def delete_building(building_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins/new', methods=['GET', 'POST'])
 @management_required
-def create_admin():
+async def create_admin():
     api = APIClient(current_user.id)
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -219,7 +219,7 @@ def create_admin():
                 "password": password,
                 "role": role
             }
-            api.post('/users/', json=user_data)
+            await api.post('/users/', json=user_data)
             flash(f'Administrador "{username}" creado correctamente.', 'success')
             return redirect(url_for('catalog.list_admins'))
         except Exception as e:
@@ -234,10 +234,10 @@ def create_admin():
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins', methods=['GET'])
 @management_required
-def list_admins():
+async def list_admins():
     api = APIClient(current_user.id)
     try:
-        admins = api.get('/users/')
+        admins = await api.get('/users/')
         # Find active building for each admin if any
         admin_buildings = {}
         for admin in admins:
@@ -253,10 +253,10 @@ def list_admins():
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins/<int:admin_id>/edit', methods=['GET', 'POST'])
 @management_required
-def edit_admin(admin_id):
+async def edit_admin(admin_id):
     api = APIClient(current_user.id)
     try:
-        admin = api.get(f'/users/{admin_id}')
+        admin = await api.get(f'/users/{admin_id}')
     except Exception as e:
         flash(f'Administrador no encontrado: {str(e)}', 'error')
         return redirect(url_for('catalog.list_admins'))
@@ -300,7 +300,7 @@ def edit_admin(admin_id):
             # Re-assign buildings if building_ids is provided
             b_ids = [int(bid) for bid in building_ids if bid and bid != 'none']
             
-            api.put(f'/users/{admin_id}', json=user_data, params={'building_ids': b_ids} if building_ids else None)
+            await api.put(f'/users/{admin_id}', json=user_data, params={'building_ids': b_ids} if building_ids else None)
             flash(f'Administrador "{name}" actualizado correctamente.', 'success')
             return redirect(url_for('catalog.list_admins'))
         except Exception as e:
@@ -308,7 +308,7 @@ def edit_admin(admin_id):
             return redirect(url_for('catalog.edit_admin', admin_id=admin_id))
 
     try:
-        buildings = api.get('/buildings/')
+        buildings = await api.get('/buildings/')
         assigned = admin.get('assigned_buildings', [])
         assigned_building_ids = [building['id'] for building in assigned]
         current_building = assigned[0] if assigned else None
@@ -329,10 +329,10 @@ def edit_admin(admin_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/admins/<int:admin_id>/delete', methods=['POST'])
 @management_required
-def delete_admin(admin_id):
+async def delete_admin(admin_id):
     api = APIClient(current_user.id)
     try:
-        api.delete(f'/users/{admin_id}')
+        await api.delete(f'/users/{admin_id}')
         flash('Administrador eliminado correctamente.', 'success')
     except Exception as e:
         flash(f'Error al eliminar administrador: {str(e)}', 'error')
@@ -343,7 +343,7 @@ def delete_admin(admin_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/upload', methods=['GET', 'POST'])
 @management_required
-def upload_csv():
+async def upload_csv():
     """Upload a CSV file to create or update products in the master catalog."""
     api = APIClient(current_user.id)
     if request.method == 'POST':
@@ -359,7 +359,7 @@ def upload_csv():
         try:
             # Call FastAPI import endpoint
             files = {'file': (file.filename, file.stream, 'text/csv')}
-            result = api.post('/catalog/import-csv', files=files)
+            result = await api.post('/catalog/import-csv', files=files)
             
             created = result.get('products_created', 0)
             updated = result.get('products_updated', 0)
@@ -378,7 +378,7 @@ def upload_csv():
         return redirect(url_for('catalog.upload_csv'))
 
     try:
-        products = api.get('/catalog/')
+        products = await api.get('/catalog/')
         # Local uploads viewing would require an endpoint, but we can show products for now
         return render_template('catalog/upload_csv.html', products=products, uploads=[])
     except Exception as e:
@@ -387,10 +387,10 @@ def upload_csv():
 
 @catalog_bp.route('/upload/<int:upload_id>/delete', methods=['POST'])
 @management_required
-def delete_csv_upload(upload_id):
+async def delete_csv_upload(upload_id):
     api = APIClient(current_user.id)
     try:
-        api.delete(f'/catalog/uploads/{upload_id}')
+        await api.delete(f'/catalog/uploads/{upload_id}')
         flash('Lote de subida eliminado correctamente.', 'success')
     except Exception as e:
         flash(f'Error al eliminar lote: {str(e)}', 'error')
@@ -401,7 +401,7 @@ def delete_csv_upload(upload_id):
 # ─────────────────────────────────────────────────────────────────────────────
 @catalog_bp.route('/warehouse', methods=['GET'])
 @management_required
-def warehouse():
+async def warehouse():
     api = APIClient(current_user.id)
     page = request.args.get('page', 1, type=int)
     per_page = 20
@@ -410,7 +410,7 @@ def warehouse():
     skip = (page - 1) * per_page
     
     try:
-        products = api.get('/catalog/all', params={
+        products = await api.get('/catalog/all', params={
             'skip': skip,
             'limit': per_page,
             'q': q if q else None
@@ -429,7 +429,7 @@ def warehouse():
 
 @catalog_bp.route('/warehouse/product/new', methods=['GET', 'POST'])
 @management_required
-def create_product():
+async def create_product():
     api = APIClient(current_user.id)
     if request.method == 'POST':
         sku = request.form.get('sku', '').strip()
@@ -464,7 +464,7 @@ def create_product():
                 "stock_actual": stock,
                 "imagen_url": imagen_url or "/static/img/default-product.png"
             }
-            api.post('/catalog/', json=product_data)
+            await api.post('/catalog/', json=product_data)
             flash(f'Producto "{name}" creado correctamente.', 'success')
             return redirect(url_for('catalog.warehouse'))
         except Exception as e:
@@ -475,10 +475,10 @@ def create_product():
 
 @catalog_bp.route('/warehouse/product/<int:product_id>/edit', methods=['GET', 'POST'])
 @management_required
-def edit_product(product_id):
+async def edit_product(product_id):
     api = APIClient(current_user.id)
     try:
-        product = api.get(f'/catalog/{product_id}')
+        product = await api.get(f'/catalog/{product_id}')
     except Exception as e:
         flash(f'Producto no encontrado: {str(e)}', 'error')
         return redirect(url_for('catalog.warehouse'))
@@ -504,7 +504,7 @@ def edit_product(product_id):
                 update_data["imagen_url"] = f'/static/uploads/{filename}'
         
         try:
-            api.put(f'/catalog/{product_id}', json=update_data)
+            await api.put(f'/catalog/{product_id}', json=update_data)
             flash(f'Producto actualizado correctamente.', 'success')
             return redirect(url_for('catalog.warehouse'))
         except Exception as e:
@@ -515,10 +515,10 @@ def edit_product(product_id):
 
 @catalog_bp.route('/warehouse/product/<int:product_id>/toggle', methods=['POST'])
 @management_required
-def toggle_product(product_id):
+async def toggle_product(product_id):
     api = APIClient(current_user.id)
     try:
-        api.patch(f'/catalog/{product_id}/toggle')
+        await api.patch(f'/catalog/{product_id}/toggle')
         flash('Estado del producto actualizado.', 'success')
     except Exception as e:
         flash(f'Error al actualizar estado: {str(e)}', 'error')
@@ -530,24 +530,24 @@ def toggle_product(product_id):
 
 @catalog_bp.route('/warehouse/catalog/preview', methods=['POST'])
 @management_required
-def catalog_preview():
+async def catalog_preview():
     payload = request.get_json(silent=True) or {}
     url = payload.get('url')
     if not url:
         return jsonify({'error': 'URL is required'}), 400
     
     try:
-        data = APIClient(current_user.id).post('/catalog/preview', params={'url': url})
+        data = await APIClient(current_user.id).post('/catalog/preview', params={'url': url})
         return jsonify(data), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @catalog_bp.route('/warehouse/catalog/sync/<int:product_id>', methods=['POST'])
 @management_required
-def catalog_sync(product_id):
+async def catalog_sync(product_id):
     api = APIClient(current_user.id)
     try:
-        api.put(f'/catalog/{product_id}/sync')
+        await api.put(f'/catalog/{product_id}/sync')
         flash("Producto sincronizado con éxito.", "success")
         return redirect(url_for('catalog.warehouse'))
     except Exception as e:

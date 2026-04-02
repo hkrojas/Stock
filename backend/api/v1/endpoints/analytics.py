@@ -1,4 +1,8 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from redis import Redis
+from redis.exceptions import RedisError
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
@@ -6,8 +10,41 @@ from typing import Any
 
 from backend import models, schemas
 from backend.api import deps
+from backend.core.config import settings
 
 router = APIRouter()
+
+
+DASHBOARD_CACHE_TTL_SECONDS = 15 * 60
+_redis_client: Redis | None = None
+
+
+def _get_redis_client() -> Redis:
+    global _redis_client
+    if _redis_client is None:
+        _redis_client = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+    return _redis_client
+
+
+def _get_cached_dashboard(cache_key: str) -> Any | None:
+    try:
+        cached_value = _get_redis_client().get(cache_key)
+        return json.loads(cached_value) if cached_value else None
+    except RedisError:
+        return None
+
+
+def _cache_dashboard(cache_key: str, schema: type[BaseModel], payload: Any) -> Any:
+    serialized_payload = schema.model_validate(payload).model_dump(mode="json")
+    try:
+        _get_redis_client().setex(
+            cache_key,
+            DASHBOARD_CACHE_TTL_SECONDS,
+            json.dumps(serialized_payload),
+        )
+    except RedisError:
+        pass
+    return serialized_payload
 
 
 @router.get("/admin", response_model=schemas.dashboard.AdminDashboard)
@@ -16,6 +53,11 @@ def get_admin_dashboard(
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Operations dashboard for Building Admins."""
+    cache_key = f"analytics:admin:{current_user.role}:{current_user.id}"
+    cached_payload = _get_cached_dashboard(cache_key)
+    if cached_payload is not None:
+        return cached_payload
+
     active_statuses = ["submitted", "processing", "dispatched"]
 
     if current_user.role == "superadmin":
@@ -70,13 +112,14 @@ def get_admin_dashboard(
             "active_orders_count": active_counts_dict.get(building.id, 0),
         })
 
-    return {
+    payload = {
         "buildings": buildings,
         "pedidos_activos": pedidos_activos,
         "pedidos_en_transito": pedidos_en_transito,
         "historial_pedidos": historial_pedidos,
         "pedidos_despachados": pedidos_despachados,
     }
+    return _cache_dashboard(cache_key, schemas.dashboard.AdminDashboard, payload)
 
 
 @router.get("/manager", response_model=schemas.dashboard.ManagerDashboard)
@@ -85,6 +128,11 @@ def get_manager_dashboard(
     current_user: models.User = Depends(deps.get_current_active_management),
 ) -> Any:
     """Warehouse operations dashboard."""
+    cache_key = "analytics:manager"
+    cached_payload = _get_cached_dashboard(cache_key)
+    if cached_payload is not None:
+        return cached_payload
+
     pedidos_submitted = db.query(models.Order).filter_by(status="submitted").count()
     lotes_pendientes = db.query(models.DispatchBatch).filter_by(status="pending").all()
     alertas_stock = db.query(models.Product).filter(
@@ -94,12 +142,13 @@ def get_manager_dashboard(
     
     compras_recientes = db.query(models.Purchase).order_by(models.Purchase.purchase_date.desc()).limit(5).all()
 
-    return {
+    payload = {
         "pedidos_submitted": pedidos_submitted,
         "lotes_pendientes": lotes_pendientes,
         "alertas_stock": alertas_stock,
         "compras_recientes": compras_recientes,
     }
+    return _cache_dashboard(cache_key, schemas.dashboard.ManagerDashboard, payload)
 
 
 @router.get("/superadmin", response_model=schemas.dashboard.SuperadminDashboard)
@@ -110,6 +159,11 @@ def get_superadmin_dashboard(
     """Full analytics dashboard for Superadmins."""
     if current_user.role != "superadmin":
         raise HTTPException(status_code=403, detail="Not enough privileges")
+
+    cache_key = "analytics:superadmin"
+    cached_payload = _get_cached_dashboard(cache_key)
+    if cached_payload is not None:
+        return cached_payload
 
     total_pedidos_pendientes = db.query(models.Order).filter(
         models.Order.status.in_(["draft", "submitted"])
@@ -173,7 +227,7 @@ def get_superadmin_dashboard(
         models.DispatchBatch.created_at.desc()
     ).limit(5).all()
 
-    return {
+    payload = {
         "total_pedidos_pendientes": total_pedidos_pendientes,
         "total_edificios_activos": total_edificios_activos,
         "costo_despachado_mes": costo_despachado_mes,
@@ -187,3 +241,4 @@ def get_superadmin_dashboard(
         "chart_productos_data": chart_productos_data,
         "lotes_recientes": lotes_recientes,
     }
+    return _cache_dashboard(cache_key, schemas.dashboard.SuperadminDashboard, payload)
