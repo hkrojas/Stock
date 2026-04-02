@@ -2,6 +2,8 @@ from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 from .product import Product
+from .user import User
+from .building import Building
 
 class OrderItemBase(BaseModel):
     product_id: int
@@ -31,3 +33,20 @@ class Order(OrderBase):
     status: str
     items: List[OrderItem]
     model_config = ConfigDict(from_attributes=True)
+
+class OrderDetail(Order):
+    building: Building
+    created_by: User
+    rejection_note: Optional[str] = None
+
+class OrderItemUpdate(BaseModel):
+    quantity: int
+
+class ConsumptionReportRow(BaseModel):
+    building_name: str
+    product_name: str
+    unit: str
+    imagen_url: Optional[str] = None
+    total_consumed: int
+    events: int
+    last_reported: Optional[datetime] = None

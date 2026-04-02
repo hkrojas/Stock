@@ -20,9 +20,14 @@ def login_access_token(
     user = db.query(models.User).filter(models.User.username == form_data.username).first()
     if not user or not security.verify_password(form_data.password, user.password_hash):
         raise HTTPException(
-            status_code=status.HTTP_01_UNAUTHORIZED,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
         )
+
+    if security.password_hash_needs_upgrade(user.password_hash):
+        user.password_hash = security.get_password_hash(form_data.password)
+        db.add(user)
+        db.commit()
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {

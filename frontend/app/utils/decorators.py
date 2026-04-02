@@ -17,7 +17,14 @@ def management_required(f):
     @wraps(f)
     @login_required
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role not in ('manager', 'superadmin') or session.get('view_as_admin'):
+        # Superadmins should always have access to management tools unless we want strict emulation.
+        # But even then, blocking the warehouse might be too much.
+        is_management = current_user.role in ('manager', 'superadmin')
+        if not current_user.is_authenticated or not is_management:
+            abort(403)
+        # Only block managers/superadmins if they are explicitly viewing as a regular admin AND the route is management-only.
+        # We allow superadmins to bypass the toggle for critical views like the warehouse.
+        if session.get('view_as_admin') and current_user.role != 'superadmin':
             abort(403)
         return f(*args, **kwargs)
     return decorated_function

@@ -1,112 +1,141 @@
 {% extends 'base.html' %}
-{% block title %}Pedidos Pendientes — Consolidación{% endblock %}
+{% block title %}Consolidación de Despacho — Operaciones GH{% endblock %}
 
 {% block content %}
-<div class="space-y-6 pb-28 max-w-5xl mx-auto">
+<div class="max-w-5xl mx-auto space-y-12 pb-44 px-4">
 
-    <!-- Page Header -->
-    <div class="flex items-start justify-between">
-        <div>
-            <h2 class="text-2xl font-extrabold text-[#00205B] tracking-tight">Consolidación de Despacho</h2>
-            <p class="text-sm font-medium text-slate-500 mt-1">Selecciona pedidos para generar un lote operativo.</p>
+    <!-- Premium Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 pt-12">
+        <div class="space-y-3">
+            <span class="eyebrow !text-amber/60">Logística & Distribución</span>
+            <h1 class="h2 italic !tracking-tighter">Consolidación</h1>
+            <p class="text-text-muted font-medium text-sm max-w-lg">Seleccione las órdenes de trabajo para agrupar en un lote operativo de despacho institucional.</p>
         </div>
-        <div class="flex items-center gap-2 bg-white border border-slate-200 shadow-sm rounded-xl px-3 py-1.5">
-            <div class="w-2.5 h-2.5 rounded-full {% if orders %}bg-amber-400{% else %}bg-emerald-400{% endif %}"></div>
-            <span class="text-xs font-extrabold text-[#00205B]">{{ orders|length }} pendiente{{ 's' if orders|length != 1 }}</span>
+        
+        <div class="flex items-center gap-5 bg-white/[0.03] border border-white/5 backdrop-blur-3xl rounded-[2rem] px-8 py-5 shadow-2xl">
+            <div class="relative">
+                <div class="w-2.5 h-2.5 rounded-full {% if orders %}bg-amber animate-pulse{% else %}bg-emerald-500{% endif %} shadow-[0_0_20px_rgba(242,173,61,0.4)]"></div>
+            </div>
+            <div class="flex flex-col">
+                <span class="text-[9px] font-black text-text-muted uppercase tracking-[0.3em]">Carga Pendiente</span>
+                <span class="text-xl font-black text-white leading-none tabular-nums">{{ orders|length }} SOLICITUDES</span>
+            </div>
         </div>
     </div>
 
+    <!-- Consolidation Form -->
     <form method="POST" action="{{ url_for('dispatch.consolidate_orders') }}" id="consolidate-form">
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 gap-8">
             {% for order in orders %}
-            <label class="block bg-white rounded-2xl shadow-sm border-2 border-slate-200/70 p-5 cursor-pointer
-                         has-[:checked]:border-[#FAAC2A] has-[:checked]:bg-[#FAAC2A]/5 has-[:checked]:shadow-md
-                         hover:border-slate-300 transition-all relative group">
-                <div class="flex items-start gap-4">
-                    <!-- Custom Checkbox -->
-                    <div class="mt-0.5 relative">
-                        <input type="checkbox" name="order_ids" value="{{ order.id }}"
-                               class="peer w-6 h-6 text-[#FAAC2A] focus:ring-[#00205B] rounded-lg cursor-pointer shrink-0 border-slate-300">
-                    </div>
-
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-start mb-3">
-                            <div>
-                                <h3 class="text-lg font-extrabold text-[#00205B] leading-tight group-hover:text-[#FAAC2A] transition-colors">{{ order.building.name }}</h3>
-                                <p class="text-[13px] font-medium text-slate-500 mt-1 flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                    Enviado por {{ order.created_by.name or order.created_by.username }}
-                                </p>
+            <label class="group/card relative block cursor-pointer">
+                <input type="checkbox" name="order_ids" value="{{ order.id }}" class="peer absolute opacity-0">
+                
+                <div class="card !p-10 border-white/5 bg-navy-accent/10 transition-all duration-700 
+                            peer-checked:border-amber/40 peer-checked:bg-amber/[0.03] peer-checked:shadow-[0_40px_100px_-20px_rgba(242,173,61,0.08)]
+                            group-hover/card:bg-white/[0.02] group-hover/card:border-white/10 group-hover/card:translate-y-[-4px]">
+                    
+                    <div class="flex flex-col lg:flex-row gap-10">
+                        <!-- Premium Checkbox Component -->
+                        <div class="shrink-0">
+                            <div class="checkbox-premium pointer-events-none">
+                                <svg class="w-5 h-5 text-navy-deep opacity-0 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/>
+                                </svg>
                             </div>
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-md shrink-0 border tracking-wider
-                                {% if order.status == 'submitted' %} bg-emerald-50 text-emerald-700 border-emerald-200
-                                {% else %} bg-amber-50 text-amber-700 border-amber-200 {% endif %}">
-                                {{ order.status | upper }}
-                            </span>
                         </div>
 
-                        <!-- Items preview -->
-                        <div class="bg-slate-50/80 rounded-xl p-3 border border-slate-100">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
-                                <span>Contenido del pedido</span>
-                                <span>{{ order.items|length }} Ítem{{ 's' if order.items|length != 1 }}</span>
-                            </p>
-                            <ul class="space-y-1.5">
-                                {% for item in order.items[:3] %}
-                                <li class="flex justify-between items-center text-sm">
-                                    <span class="text-slate-600 truncate font-medium pr-4">{{ item.product.name }}</span>
-                                    <span class="font-black text-[#00205B] shrink-0 bg-white shadow-sm border border-slate-200 px-2 py-0.5 rounded-lg text-xs">×{{ item.quantity }}</span>
-                                </li>
-                                {% endfor %}
-                                {% if order.items|length > 3 %}
-                                <li class="text-xs text-slate-400 font-bold italic mt-2">
-                                    + {{ order.items|length - 3 }} productos adicionales...
-                                </li>
-                                {% endif %}
-                            </ul>
+                        <div class="flex-1 space-y-8">
+                            <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+                                <div>
+                                    <h3 class="text-2xl font-black text-white uppercase tracking-tight group-hover/card:text-amber transition-colors">{{ order.building.name }}</h3>
+                                    <div class="flex items-center gap-4 mt-4">
+                                        <div class="avatar-premium">
+                                            {{ (order.created_by.name or order.created_by.username)[0] | upper }}
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-[8px] font-black text-text-muted uppercase tracking-[0.3em]">Emitido por</span>
+                                            <span class="text-[11px] font-bold text-white/90 uppercase tracking-widest">{{ order.created_by.name or order.created_by.username }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="px-5 py-2 rounded-full border text-[10px] font-black uppercase tracking-[0.25em] shadow-lg
+                                    {% if order.status == 'submitted' %} 
+                                        bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                    {% else %} 
+                                        bg-amber/10 text-amber border-amber/20
+                                    {% endif %}">
+                                    Estado: {{ order.status }}
+                                </div>
+                            </div>
+
+                            <!-- Items preview (Higher density) -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-black/30 rounded-[2rem] p-7 border border-white/5 transition-all group-hover/card:border-white/10">
+                                <div class="md:col-span-2 space-y-4">
+                                    <span class="section-label !mb-2">Manifiesto de Carga</span>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                                        {% for item in order['items'][:4] %}
+                                        <div class="flex justify-between items-center group/item">
+                                            <span class="text-[13px] font-medium text-white/50 truncate group-hover/item:text-white/80 transition-colors">{{ item.product.name }}</span>
+                                            <span class="font-black text-[10px] text-amber bg-white/5 px-2 py-0.5 rounded-lg border border-white/5 group-hover/card:bg-amber group-hover/card:text-navy-deep group-hover/card:border-amber transition-all">×{{ item.quantity }}</span>
+                                        </div>
+                                        {% endfor %}
+                                        {% if order['items']|length > 4 %}
+                                        <div class="pt-1 col-span-full">
+                                            <span class="text-[9px] font-black text-amber/40 uppercase tracking-[0.2em] group-hover/card:text-amber/60">+ {{ order['items']|length - 4 }} PRODUCTOS ADICIONALES</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="flex flex-col justify-center items-end border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 pl-0 md:pl-6 gap-1">
+                                    <span class="text-[9px] font-black text-text-muted uppercase tracking-[0.35em]">Total SKUs</span>
+                                    <span class="text-5xl font-black text-white/5 group-hover/card:text-amber/10 transition-colors tabular-nums">{{ order['items']|length }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </label>
             {% else %}
-            <div class="text-center py-16 bg-white rounded-3xl shadow-sm border border-slate-200/80">
-                <div class="w-20 h-20 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-                    <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="text-center py-32 card border-dashed border-white/10 bg-white/[0.01]">
+                <div class="w-24 h-24 bg-emerald-500/5 border border-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse">
+                    <svg class="w-10 h-10 text-emerald-500/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-extrabold text-[#00205B]">Bandeja Limpia</h3>
-                <p class="text-sm font-medium text-slate-500 mt-1">No hay pedidos pendientes de consolidación.</p>
+                <h3 class="text-2xl font-black text-white uppercase tracking-tight mb-3">Operaciones al Día</h3>
+                <p class="text-text-muted font-medium max-w-sm mx-auto">No existen solicitudes de despacho pendientes. El personal logístico ha procesado todo el flujo de carga.</p>
             </div>
             {% endfor %}
         </div>
 
-        {% if orders %}
-        <!-- Sticky bottom action bar (mobile) -->
-        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 z-40 lg:hidden flex gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-            <button type="button" id="toggle-all-mobile"
-                    class="flex flex-col items-center justify-center w-1/3 py-2 text-xs font-bold text-[#00205B] bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
-                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                Todos
-            </button>
-            <button type="submit" id="submit-btn-mobile"
-                    class="w-2/3 flex items-center justify-center gap-2 py-3 text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] rounded-xl shadow-lg shadow-black/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                <span id="submit-text-mobile">Generar Lote</span>
-            </button>
-        </div>
+        {% if orders and current_user.role in ['manager', 'superadmin'] %}
+        <!-- Premium Action Floating Bar -->
+        <div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-5xl z-50 animate-in slide-in-from-bottom-12 fade-in duration-1000">
+            <div class="bg-navy-deep/60 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-4 shadow-[0_50px_100px_-30px_rgba(0,0,0,0.9)] flex flex-col md:flex-row items-stretch md:items-center gap-4">
+                
+                <!-- Toggle Select -->
+                <button type="button" id="toggle-all-global"
+                        class="h-16 px-10 flex items-center justify-center gap-4 text-[10px] font-black text-white/80 hover:text-white uppercase tracking-[0.25em] hover:bg-white/5 rounded-full transition-all border border-transparent hover:border-white/10">
+                    <svg class="w-5 h-5 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    Alternar Selección
+                </button>
 
-        <!-- Desktop action bar -->
-        <div class="hidden lg:flex justify-end mt-8 gap-4 px-2">
-            <button type="button" id="toggle-all-desktop"
-                    class="px-6 py-3.5 text-sm font-extrabold text-[#00205B] bg-slate-100 hover:bg-slate-200 rounded-xl shadow-sm transition-colors border border-slate-200">
-                Seleccionar/Desmarcar Todos
-            </button>
-            <button type="submit" id="submit-btn-desktop"
-                    class="px-8 py-3.5 text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] hover:bg-[#E5981D] rounded-xl shadow-lg shadow-black/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                <span id="submit-text-desktop">Agrupar y Generar Lote Operativo</span>
-            </button>
+                <!-- Status Counter -->
+                <div class="hidden md:flex flex-1 items-center justify-center border-x border-white/5">
+                    <div id="selection-status" class="flex flex-col items-center opacity-30 transition-all duration-500">
+                        <span class="text-[8px] font-black text-text-muted uppercase tracking-[0.4em]">En Proceso</span>
+                        <span class="text-base font-black text-white tracking-widest tabular-nums" id="count-display">0 SOLICITUDES</span>
+                    </div>
+                </div>
+
+                <!-- Main Action -->
+                <button type="submit" id="submit-btn-global" disabled
+                        class="h-16 px-12 flex items-center justify-center gap-4 text-[11px] font-black text-navy-deep bg-amber hover:bg-amber-hover rounded-full transition-all disabled:opacity-20 disabled:grayscale disabled:cursor-not-allowed shadow-2xl shadow-amber/20 group uppercase tracking-[0.2em]">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    <span id="submit-text-global">CONSOLIDAR DESPACHO</span>
+                </button>
+            </div>
         </div>
         {% endif %}
     </form>
@@ -117,39 +146,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkboxes = document.querySelectorAll('input[name="order_ids"]');
     if (checkboxes.length === 0) return;
     
-    const elements = [
-        { btn: document.getElementById('submit-btn-mobile'), text: document.getElementById('submit-text-mobile'), emptyText: 'Selecciona pedidos' },
-        { btn: document.getElementById('submit-btn-desktop'), text: document.getElementById('submit-text-desktop'), emptyText: 'Selecciona pedidos' }
-    ];
+    const submitBtn = document.getElementById('submit-btn-global');
+    const submitText = document.getElementById('submit-text-global');
+    const countDisplay = document.getElementById('count-display');
+    const selectionStatus = document.getElementById('selection-status');
 
     function updateCounters() {
         const count = Array.from(checkboxes).filter(cb => cb.checked).length;
         const isDisabled = count === 0;
         
-        elements.forEach(({ btn, text, emptyText }) => {
-            if (!btn || !text) return;
-            btn.disabled = isDisabled;
-            text.textContent = count === 0 ? emptyText : `Generar Lote con ${count} pedido${count === 1 ? '' : 's'}`;
-        });
+        if (submitBtn) {
+            submitBtn.disabled = isDisabled;
+            submitText.textContent = count === 0 ? 'CONSOLIDAR LOTE' : `PROCESAR ${count} PEDIDO${count === 1 ? '' : 'S'}`;
+        }
+        
+        if (countDisplay) {
+            countDisplay.textContent = `${count} PEDIDO${count === 1 ? '' : 'S'}`;
+            selectionStatus.classList.toggle('opacity-40', count === 0);
+            selectionStatus.classList.toggle('opacity-100', count > 0);
+        }
     }
 
     checkboxes.forEach(cb => cb.addEventListener('change', updateCounters));
 
-    const bindToggle = (id) => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            btn.addEventListener('click', () => {
-                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-                checkboxes.forEach(cb => cb.checked = !allChecked);
-                updateCounters();
-            });
-        }
-    };
+    const toggleBtn = document.getElementById('toggle-all-global');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            updateCounters();
+        });
+    }
 
-    bindToggle('toggle-all-mobile');
-    bindToggle('toggle-all-desktop');
-
-    // Init UI 
     updateCounters();
 });
 </script>

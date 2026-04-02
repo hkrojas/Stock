@@ -1,7 +1,7 @@
 import os
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'super-secret-default-key'
-    # Use SQLite as fallback for development if DATABASE_URL is not set
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///stock.db'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-for-dev'
+    API_BASE_URL = os.environ.get('API_BASE_URL') or 'http://localhost:8000/api/v1'
+    API_ROOT_URL = API_BASE_URL.rsplit('/api/', 1)[0] if '/api/' in API_BASE_URL else API_BASE_URL.rstrip('/')
+    API_DOCS_URL = f'{API_ROOT_URL}/docs'

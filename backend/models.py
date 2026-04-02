@@ -30,7 +30,7 @@ class Building(Base):
     name = Column(String(120), unique=True, nullable=False, index=True)
     address = Column(String(255))
     departments_count = Column(Integer, default=0)
-    admin_id = Column(Integer, ForeignKey('user.id'), nullable=True)
+    admin_id = Column(Integer, ForeignKey('user.id'), nullable=True, index=True)
     imagen_frontis = Column(String(255), nullable=True)
 
     # Relationship to orders
@@ -66,16 +66,22 @@ class Product(Base):
     stock_minimo = Column(Integer, nullable=False, default=10)
     is_active = Column(Boolean, default=True)
     
-    source_csv_id = Column(Integer, ForeignKey('csv_upload.id'), nullable=True)
+    source_csv_id = Column(Integer, ForeignKey('csv_upload.id'), nullable=True, index=True)
+    
+    # Dynamic sync fields
+    source_url = Column(String(512), nullable=True)
+    is_dynamic = Column(Boolean, default=False)
+    last_synced_at = Column(DateTime, nullable=True)
 
 
 class Order(Base):
     __tablename__ = "order"
     id = Column(Integer, primary_key=True, index=True)
-    building_id = Column(Integer, ForeignKey('building.id'), nullable=False)
-    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    building_id = Column(Integer, ForeignKey('building.id'), nullable=False, index=True)
+    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     status = Column(String(20), default='draft')  # 'draft', 'submitted', 'processing', 'dispatched'
+    rejection_note = Column(Text, nullable=True)  # Manager's note when rejecting an order
 
     # Relationships
     items = relationship('OrderItem', backref='order', lazy=True, cascade="all, delete-orphan")
@@ -85,8 +91,8 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_item"
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey('order.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    order_id = Column(Integer, ForeignKey('order.id'), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False, index=True)
     quantity = Column(Integer, nullable=False, default=1)
 
     nombre_producto_snapshot = Column(String(100), nullable=True)
@@ -99,8 +105,8 @@ class OrderItem(Base):
 class DispatchBatch(Base):
     __tablename__ = "dispatch_batch"
     id = Column(Integer, primary_key=True, index=True)
-    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     status = Column(String(20), default='pending')  # 'pending', 'dispatched'
 
     # Relationships
@@ -113,8 +119,8 @@ class DispatchBatch(Base):
 class DispatchBatchItem(Base):
     __tablename__ = "dispatch_batch_item"
     id = Column(Integer, primary_key=True, index=True)
-    batch_id = Column(Integer, ForeignKey('dispatch_batch.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    batch_id = Column(Integer, ForeignKey('dispatch_batch.id'), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False, index=True)
     total_quantity = Column(Integer, nullable=False)
 
     # Relationship to product
@@ -124,12 +130,12 @@ class DispatchBatchItem(Base):
 class InventoryMovement(Base):
     __tablename__ = "inventory_movement"
     id = Column(Integer, primary_key=True, index=True)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False, index=True)
     quantity = Column(Integer, nullable=False)  # Can be positive or negative
     movement_type = Column(String(20), nullable=False)  # 'in', 'out'
-    reference_id = Column(Integer, nullable=True)  # e.g., batch_id
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    reference_id = Column(Integer, nullable=True, index=True)  # e.g., batch_id
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
 
     # Relationships
     product = relationship('Product')
@@ -139,8 +145,8 @@ class InventoryMovement(Base):
 class BuildingInventory(Base):
     __tablename__ = "building_inventory"
     id = Column(Integer, primary_key=True, index=True)
-    building_id = Column(Integer, ForeignKey('building.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    building_id = Column(Integer, ForeignKey('building.id'), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False, index=True)
     quantity = Column(Integer, nullable=False, default=0)
     last_updated = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -152,9 +158,9 @@ class BuildingInventory(Base):
 class ConsumptionLog(Base):
     __tablename__ = "consumption_log"
     id = Column(Integer, primary_key=True, index=True)
-    building_id = Column(Integer, ForeignKey('building.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
-    reported_by_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    building_id = Column(Integer, ForeignKey('building.id'), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False, index=True)
+    reported_by_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
     quantity_consumed = Column(Integer, nullable=False)
     reported_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -172,8 +178,8 @@ class Purchase(Base):
     purchase_date = Column(Date, nullable=False)
     total_amount = Column(Float, nullable=True, default=0.0)
     notes = Column(Text, nullable=True)
-    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     items = relationship('PurchaseItem', backref='purchase', lazy=True, cascade="all, delete-orphan")
     created_by = relationship('User', foreign_keys=[created_by_id])
@@ -182,8 +188,8 @@ class Purchase(Base):
 class PurchaseItem(Base):
     __tablename__ = "purchase_item"
     id = Column(Integer, primary_key=True, index=True)
-    purchase_id = Column(Integer, ForeignKey('purchase.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    purchase_id = Column(Integer, ForeignKey('purchase.id'), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False, index=True)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Float, nullable=True, default=0.0)
 

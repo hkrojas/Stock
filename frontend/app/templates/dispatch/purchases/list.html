@@ -1,86 +1,105 @@
 {% extends 'base.html' %}
-{% block title %}Compras Directas{% endblock %}
+{% block title %}Adquisiciones Directas — Grupo Hernandez{% endblock %}
 
 {% block content %}
-<div class="space-y-6 pb-10">
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-black text-[#00205B] tracking-tight">Compras Directas</h1>
-            <p class="text-sm font-medium text-slate-500 mt-1">Registro de compras realizadas fuera del sistema de pedidos.</p>
+<div class="max-w-7xl mx-auto space-y-10 pb-32">
+    
+    <!-- Branding Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
+        <div class="space-y-2">
+            <span class="eyebrow tracking-[0.4em] !text-amber">Gestión de Suministros</span>
+            <h1 class="h2 italic !tracking-tighter">Compras Directas</h1>
+            <p class="text-text-muted font-medium text-sm">Registro y control de adquisiciones realizadas para el reabastecimiento del núcleo logístico.</p>
         </div>
-        <div class="flex items-center gap-3">
+        
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <div class="flex items-center gap-4 bg-navy-accent/50 border border-white/5 backdrop-blur-xl rounded-2xl px-6 py-3 shadow-2xl shadow-black/20">
+                <span class="text-[9px] font-black text-text-muted uppercase tracking-widest text-center">Operaciones<br>Registradas</span>
+                <span class="text-2xl font-black text-white leading-none border-l border-white/10 pl-4">{{ purchases|length }}</span>
+            </div>
+            
             <a href="{{ url_for('dispatch.create_purchase') }}" 
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FAAC2A] hover:bg-[#e99b27] text-[#00205B] font-black rounded-xl text-sm transition-all shadow-lg shadow-[#FAAC2A]/20 hover:shadow-[#FAAC2A]/40">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Nueva Compra
+               class="btn btn-primary shadow-2xl shadow-amber/10 group h-14 px-8">
+                <svg class="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+                REGISTRAR ADQUISICIÓN
             </a>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+    <!-- Data Table -->
+    <div class="card !p-0 border-white/5 bg-navy-accent/10 overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)]">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm whitespace-nowrap">
+            <table class="w-full text-left text-sm whitespace-nowrap border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100 text-xs uppercase tracking-widest font-extrabold text-slate-400">
-                        <th class="px-6 py-4">ID</th>
-                        <th class="px-6 py-4">Fecha</th>
-                        <th class="px-6 py-4">Proveedor</th>
-                        <th class="px-6 py-4">Factura</th>
-                        <th class="px-6 py-4 text-center">Items</th>
-                        <th class="px-6 py-4 text-right">Total</th>
-                        <th class="px-6 py-4">Registrado Por</th>
-                        <th class="px-6 py-4 text-right">Detalle</th>
+                    <tr class="bg-white/[0.02] border-b border-white/[0.03] text-[10px] uppercase tracking-[0.3em] font-black text-text-muted">
+                        <th class="px-8 py-5">Control</th>
+                        <th class="px-8 py-5">Cronología</th>
+                        <th class="px-8 py-5">Proveedor & Comprobante</th>
+                        <th class="px-8 py-5 text-center">Carga</th>
+                        <th class="px-8 py-5 text-right">Inversión</th>
+                        <th class="px-8 py-5 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-white/[0.03]">
                     {% for purchase in purchases %}
-                    <tr class="hover:bg-emerald-50/50 transition-colors group">
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 font-black rounded-lg text-xs tracking-wider">
-                                #{{ purchase.id }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <p class="font-bold text-slate-700">{{ purchase.purchase_date.strftime('%d/%m/%Y') }}</p>
-                        </td>
-                        <td class="px-6 py-4 font-medium text-slate-700">
-                            {{ purchase.supplier or 'Sin proveedor' }}
-                        </td>
-                        <td class="px-6 py-4 text-slate-500 font-mono text-xs">
-                            {{ purchase.invoice_number or 'N/A' }}
-                        </td>
-                        <td class="px-6 py-4 text-center font-bold text-slate-600">
-                            {{ purchase.items|length }}
-                        </td>
-                        <td class="px-6 py-4 text-right font-black text-emerald-600">
-                            S/ {{ "%.2f"|format(purchase.total_amount or 0) }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-[#FAAC2A]/20 border border-[#FAAC2A]/30 flex items-center justify-center text-xs font-black text-[#00205B] uppercase">
-                                    {{ (purchase.created_by.name.split()[0][0] if purchase.created_by.name else purchase.created_by.username[0]) | upper }}
-                                </div>
-                                <span class="font-bold text-[#00205B] text-xs">
-                                    {{ purchase.created_by.username }}
-                                </span>
+                    <tr class="hover:bg-white/[0.01] transition-all group">
+                        <td class="px-8 py-6">
+                            <div class="inline-flex items-center gap-3 px-4 py-1.5 bg-emerald-500/5 border border-emerald-500/10 rounded-xl group-hover:border-emerald-500/40 transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
+                                <span class="text-xs font-black text-white tracking-widest">#{{ purchase.id }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col gap-0.5">
+                                <p class="font-black text-white text-[13px] uppercase tracking-tight">{{ purchase.purchase_date.strftime('%d %b, %Y') }}</p>
+                                <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">REGISTRO GH</p>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-col gap-1">
+                                <p class="text-[13px] font-black text-white uppercase tracking-tight truncate max-w-[200px]">
+                                    {{ purchase.supplier or 'PROVEEDOR NO ESPECIFICADO' }}
+                                </p>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-3 h-3 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">{{ purchase.invoice_number or 'SIN FACTURA' }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-navy-deep/60 border border-white/5">
+                                <span class="text-sm font-black text-white tabular-nums">{{ purchase['items']|length }}</span>
+                                <span class="text-[9px] font-black text-text-muted uppercase tracking-widest">SKUs</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <p class="text-base font-black text-emerald-400 tabular-nums tracking-tight">
+                                S/ {{ "%.2f"|format(purchase.total_amount or 0) }}
+                            </p>
+                        </td>
+                        <td class="px-8 py-6 text-right">
                             <a href="{{ url_for('dispatch.purchase_detail', purchase_id=purchase.id) }}" 
-                               class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-50 hover:bg-white border border-slate-200 hover:border-emerald-300 text-[#00205B] hover:text-emerald-600 font-bold rounded-xl text-xs transition-all shadow-sm group-hover:shadow focus:ring-2 focus:ring-emerald-100 outline-none">
-                                Ver Detalle
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                               class="btn btn-secondary !py-2.5 !px-5 !rounded-xl !text-[10px] border-white/5 hover:border-amber/30 hover:text-amber shadow-none group/link">
+                                <span>VER DETALLE</span>
+                                <svg class="w-4 h-4 transition-transform group-hover/link:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
                             </a>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="8" class="px-6 py-16 text-center">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-300 mb-4">
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <td colspan="6" class="px-8 py-32 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-6">
+                                <div class="w-20 h-20 rounded-[2.5rem] bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/5">
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-xl font-black text-white uppercase tracking-tight">Sin Adquisiciones</p>
+                                    <p class="text-[13px] font-medium text-text-muted italic">Aún no se han registrado compras directas en el sistema logístico.</p>
+                                </div>
+                                <a href="{{ url_for('dispatch.create_purchase') }}" class="btn btn-primary !rounded-2xl !py-3 !px-8 text-[11px]">
+                                    REGISTRAR PRIMERA COMPRA
+                                </a>
                             </div>
-                            <p class="text-slate-500 font-medium">Aún no hay compras directas registradas.</p>
-                            <a href="{{ url_for('dispatch.create_purchase') }}" class="inline-block mt-3 text-emerald-600 font-bold text-sm hover:underline">Registrar primera compra</a>
                         </td>
                     </tr>
                     {% endfor %}

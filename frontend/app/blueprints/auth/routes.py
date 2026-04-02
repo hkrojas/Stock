@@ -1,61 +1,81 @@
-from flask import render_template, redirect, url_for, flash, request, session
-from flask_login import login_user, logout_user, login_required, current_user
+import requests
+from flask import current_app, flash, redirect, render_template, request, session, url_for
+from flask_login import current_user, login_required, login_user, logout_user
+
 from app.blueprints.auth import auth_bp
 from app.models import User
+from app.utils.api_client import APIClient
 
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    """Show login form and handle authentication."""
-    # If user is already authenticated, redirect to dashboard
+    """Show login form and authenticate against FastAPI."""
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for("dashboard.index"))
 
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
-        remember = request.form.get('remember') == 'on'
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+        remember = request.form.get("remember") == "on"
 
         if not username or not password:
-            flash('Por favor ingresa tu usuario y contraseña.', 'error')
-            return render_template('auth/login.html')
+            flash("Por favor ingresa tu usuario y contraseña.", "error")
+            return render_template("auth/login.html")
 
-        user = User.query.filter_by(username=username).first()
+        try:
+            response = requests.post(
+                f"{current_app.config['API_BASE_URL']}/auth/login",
+                data={"username": username, "password": password},
+                timeout=10,
+            )
+            response.raise_for_status()
+            access_token = response.json().get("access_token")
+            if not access_token:
+                flash("La API no devolvió un token de acceso válido.", "error")
+                return render_template("auth/login.html")
 
-        if user is None or not user.check_password(password):
-            flash('Usuario o contraseña incorrectos. Inténtalo de nuevo.', 'error')
-            return render_template('auth/login.html')
+            session["access_token"] = access_token
+            session.pop("user_data", None)  # Clear cache to fetch fresh data
+            user_data = APIClient(token=access_token).get("/auth/me")
+            session["user_data"] = user_data # Cache it
+            user = User(user_data)
+            login_user(user, remember=remember)
 
-        # Successful authentication
-        login_user(user, remember=remember)
+            next_page = request.args.get("next")
+            return redirect(next_page or url_for("dashboard.index"))
+        except requests.HTTPError as exc:
+            detail = APIClient.error_detail(exc)
+            if exc.response is not None and exc.response.status_code == 401:
+                flash("Usuario o contraseña incorrectos.", "error")
+            else:
+                flash(f"Error de autenticación: {detail}", "error")
+        except requests.RequestException:
+            flash("Error de conexión con el servidor de autenticación.", "error")
 
-        # Redirect to the page the user originally tried to access
-        next_page = request.args.get('next')
-        if next_page:
-            return redirect(next_page)
-        return redirect(url_for('dashboard.index'))
-
-    return render_template('auth/login.html')
+    return render_template("auth/login.html")
 
 
-@auth_bp.route('/logout')
+@auth_bp.route("/logout")
 @login_required
 def logout():
     """Log the current user out."""
+    session.pop("access_token", None)
+    session.pop("user_data", None)
+    session.pop("view_as_admin", None)
     logout_user()
-    flash('Has cerrado sesión correctamente.', 'success')
-    return redirect(url_for('auth.login'))
+    flash("Has cerrado sesión correctamente.", "success")
+    return redirect(url_for("auth.login"))
 
 
-@auth_bp.route('/toggle_role')
+@auth_bp.route("/toggle_role")
 @login_required
 def toggle_role():
     """Toggle superadmin to view the application as a regular admin."""
-    if current_user.role == 'superadmin':
-        if session.get('view_as_admin'):
-            session.pop('view_as_admin', None)
-            flash('Has regresado a la vista completa de Superadmin.', 'info')
+    if current_user.role == "superadmin":
+        if session.get("view_as_admin"):
+            session.pop("view_as_admin", None)
+            flash("Has regresado a la vista completa de Superadmin.", "info")
         else:
-            session['view_as_admin'] = True
-            flash('Modo prueba activado. Estás viendo la plataforma como Administrador de Edificio.', 'info')
-    return redirect(url_for('dashboard.index'))
+            session["view_as_admin"] = True
+            flash("Modo prueba activado. Estás viendo la plataforma como Administrador de Edificio.", "info")
+    return redirect(url_for("dashboard.index"))

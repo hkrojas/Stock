@@ -2,114 +2,132 @@
 {% block title %}Editar Edificio{% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto space-y-6 pb-10">
-
-    <!-- Header -->
-    <div class="flex items-center gap-3">
-        <a href="{{ url_for('catalog.list_buildings') }}"
-           class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+<div class="max-w-2xl mx-auto space-y-8 pb-32 px-4">
+    
+    <!-- Breadcrumb & Header -->
+    <div class="flex flex-col gap-6">
+        <a href="{{ url_for('catalog.list_buildings') }}" 
+           class="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-text-muted hover:text-amber transition-colors group">
+            <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
+            Cerrar Edición
         </a>
-        <div>
-            <h2 class="text-xl font-extrabold text-[#00205B]">Editar Edificio</h2>
-            <p class="text-sm text-slate-400 font-medium">Modifica los datos y asignación de "{{ building.name }}".</p>
+        
+        <div class="flex items-center justify-between">
+            <div class="space-y-2">
+                <span class="eyebrow">Mantenimiento de Sede</span>
+                <h1 class="h2">Editar Infraestructura</h1>
+                <p class="text-text-muted font-medium">Actualizando parámetros técnicos de: <span class="text-white">{{ building.name }}</span></p>
+            </div>
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-inner">
+                <svg class="w-6 h-6 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </div>
         </div>
     </div>
 
     <!-- Form Card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-        <div class="h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
-
-        <form method="POST" action="{{ url_for('catalog.edit_building', building_id=building.id) }}" enctype="multipart/form-data" class="p-6 space-y-5">
+    <div class="card">
+        <form method="POST" action="{{ url_for('catalog.edit_building', building_id=building.id) }}" enctype="multipart/form-data" class="space-y-6">
             
-            <!-- Default fields -->
-            <div>
-                <label for="name" class="block text-sm font-bold text-slate-700 mb-1.5">Nombre del Edificio <span class="text-red-400">*</span></label>
-                <div class="relative">
-                    <input type="text" id="name" name="name" value="{{ building.name }}" required
-                           class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all">
-                </div>
+            <div class="space-y-2">
+                <label for="name" class="eyebrow !text-text-muted">Nombre de la Sede <span class="text-amber">*</span></label>
+                <input type="text" id="name" name="name" value="{{ building.name }}" required 
+                       class="input-field font-bold">
             </div>
 
-            <div>
-                <label for="address" class="block text-sm font-bold text-slate-700 mb-1.5">Dirección / Referencia</label>
-                <div class="relative">
-                    <input type="text" id="address" name="address" value="{{ building.address or '' }}"
-                           class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all">
-                </div>
+            <div class="space-y-2">
+                <label for="address" class="eyebrow !text-text-muted">Dirección / Localización</label>
+                <input type="text" id="address" name="address" value="{{ building.address or '' }}" 
+                       class="input-field font-bold">
             </div>
 
-            <div>
-                <label for="departments_count" class="block text-sm font-bold text-slate-700 mb-1.5">Cantidad de Departamentos</label>
-                <div class="relative">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Departments Count -->
+                <div class="space-y-2">
+                    <label for="departments_count" class="eyebrow !text-text-muted">Capacidad Habitacional</label>
                     <input type="number" id="departments_count" name="departments_count" value="{{ building.departments_count }}" min="0" required
-                           class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all">
+                           class="input-field font-bold">
+                </div>
+
+                <!-- Admin Selection -->
+                <div class="space-y-2">
+                    <label for="admin_id" class="eyebrow !text-text-muted">Gestor de Sede</label>
+                    <div class="relative" id="custom-admin-select">
+                        <input type="hidden" name="admin_id" id="admin_id" value="{{ building.admin_id or 'none' }}">
+                        <button type="button" 
+                                class="input-field flex justify-between items-center text-left" 
+                                onclick="document.getElementById('admin-options').classList.toggle('hidden'); this.classList.toggle('border-amber/40')">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-2 h-2 rounded-full bg-amber shadow-[0_0_8px_rgba(242,173,61,0.5)]"></div>
+                                <span id="admin-display" class="font-bold truncate text-[13px] uppercase tracking-widest">
+                                    {% if building.admin %}
+                                        {{ building.admin.name or building.admin.username }}
+                                    {% else %}
+                                        — Sin asignar —
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <svg class="w-4 h-4 text-text-muted transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        
+                        <!-- Dropdown Content -->
+                        <ul id="admin-options" class="hidden absolute z-50 w-full mt-3 bg-navy-accent border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden backdrop-blur-xl">
+                            <li>
+                                <button type="button" class="w-full text-left px-5 py-3 hover:bg-white/5 transition-colors border-b border-white/5 text-xs font-black uppercase tracking-widest text-text-muted" onclick="selectAdmin('none', '— Sin asignar —')">
+                                    Liberar Gestión
+                                </button>
+                            </li>
+                            {% for admin in admins %}
+                            <li>
+                                <button type="button" class="w-full text-left px-5 py-4 hover:bg-white/5 transition-colors group" onclick="selectAdmin('{{ admin.id }}', '{{ admin.name or admin.username }}')">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-amber/40 group-hover:bg-amber transition-colors"></div>
+                                        <span class="text-sm font-black text-white group-hover:text-amber transition-all">{{ admin.name or admin.username }}</span>
+                                    </div>
+                                    <p class="text-[10px] font-medium text-text-muted mt-1 ml-4.5">@{{ admin.username }}</p>
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
             </div>
 
-            <!-- Assignments -->
-            <div class="pt-2">
-                <label for="admin_id" class="block text-sm font-bold text-slate-700 mb-1.5">Asignar Administrador</label>
-                <div class="relative" id="custom-admin-select">
-                    <input type="hidden" name="admin_id" id="admin_id" value="{{ building.admin_id or 'none' }}">
-                    <button type="button" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all text-left flex justify-between items-center shadow-sm" onclick="document.getElementById('admin-options').classList.toggle('hidden')">
-                        <span id="admin-display" class="pt-0.5">
-                            {% if building.admin %}
-                                {{ building.admin.name or building.admin.username }}
-                            {% else %}
-                                Sin asignar
-                            {% endif %}
-                        </span>
-                        <svg class="w-4 h-4 text-slate-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <!-- Dropdown Content -->
-                    <ul id="admin-options" class="hidden absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-y-auto max-h-60 divide-y divide-slate-50">
-                        <li>
-                            <button type="button" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors" onclick="selectAdmin('none', 'Sin asignar')">
-                                Sin asignar
-                            </button>
-                        </li>
-                        {% for admin in admins %}
-                        <li>
-                            <button type="button" class="w-full text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors" onclick="selectAdmin('{{ admin.id }}', '{{ admin.name or admin.username }}')">
-                                {{ admin.name or admin.username }}
-                            </button>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <p class="text-xs text-slate-400 mt-1.5">El administrador seleccionado podrá gestionar los pedidos de este edificio.</p>
-            </div>
-
-            <!-- Imagen Frontis -->
-            <div>
-                <label for="imagen_frontis" class="block text-sm font-bold text-slate-700 mb-1.5">Foto del Edificio (Frontis)</label>
+            <!-- Image Frontis -->
+            <div class="space-y-4">
+                <label for="imagen_frontis" class="eyebrow !text-text-muted">Evidencia Fotográfica (Frontis)</label>
+                
                 {% if building.imagen_frontis %}
-                <div class="mb-3">
-                    <img src="{{ url_for('static', filename='uploads/' + building.imagen_frontis) }}" alt="Foto actual" class="h-20 w-20 object-cover rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-6 p-4 rounded-2xl bg-white/[0.03] border border-white/10 w-fit group/img">
+                    <div class="relative h-24 w-24 rounded-xl overflow-hidden shadow-lg border border-white/10">
+                        <img src="{{ url_for('static', filename='uploads/' + building.imagen_frontis) }}" alt="Fachada" 
+                             class="h-full w-full object-cover transition-transform group-hover/img:scale-110">
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs font-black text-white uppercase tracking-widest">Archivo Actual</p>
+                        <p class="text-[10px] font-medium text-text-muted">Suba un nuevo archivo para actualizar la vista.</p>
+                    </div>
                 </div>
                 {% endif %}
-                <input type="file" id="imagen_frontis" name="imagen_frontis" accept="image/*"
-                       class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all">
-                <p class="text-xs text-slate-400 mt-1">Selecciona una nueva imagen si deseas reemplazar la actual.</p>
+
+                <div class="relative group">
+                    <input type="file" id="imagen_frontis" name="imagen_frontis" accept="image/*" 
+                           class="w-full px-4 py-4 rounded-2xl border border-white/10 bg-white/5 text-sm font-medium text-text-muted file:bg-amber file:text-navy-deep file:border-0 file:rounded-lg file:px-4 file:py-1 file:mr-4 file:font-black file:uppercase file:text-[10px] file:cursor-pointer hover:border-amber/30 transition-all">
+                </div>
             </div>
 
-            <!-- Submit -->
-            <div class="pt-4 flex gap-3">
-                <a href="{{ url_for('catalog.list_buildings') }}"
-                   class="flex-1 text-center py-3 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors">
-                    Cancelar
-                </a>
-                <button type="submit"
-                        class="flex-1 py-3 rounded-xl text-sm font-extrabold text-[#00205B] shadow-md shadow-black/10 hover:shadow-lg active:scale-[.98] transition-all flex items-center justify-center gap-2 bg-[#FAAC2A] hover:bg-[#E5981D]">
+            <div class="pt-6 flex flex-col md:flex-row gap-4 border-t border-white/10">
+                <a href="{{ url_for('catalog.list_buildings') }}" class="btn btn-secondary flex-1">Descartar</a>
+                <button type="submit" class="btn btn-primary flex-1 shadow-2xl shadow-amber/10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                     Guardar Cambios
                 </button>
             </div>
         </form>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}

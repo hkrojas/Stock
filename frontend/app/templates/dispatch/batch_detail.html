@@ -1,137 +1,159 @@
 {% extends 'base.html' %}
-{% block title %}Lote #{{ batch.id }}{% endblock %}
+{% block title %}Detalle de Lote #{{ batch.id }} — Operaciones GH{% endblock %}
 
 {% block content %}
-<div class="space-y-6 pb-10">
+<div class="max-w-5xl mx-auto space-y-10 pb-32">
 
     <!-- Batch Hero Card -->
-    <div class="relative bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl p-6 shadow-xl shadow-indigo-300/40 text-white overflow-hidden">
-        <!-- Decorative bg shapes -->
-        <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-8 translate-x-8"></div>
-        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-6 -translate-x-6"></div>
+    <div class="relative card !p-0 bg-navy-accent/40 border-white/5 overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)]">
+        <!-- Abstract Decoration -->
+        <div class="absolute top-0 right-0 w-96 h-96 bg-amber/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
 
-        <div class="relative z-10">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <p class="text-indigo-300 text-xs font-bold uppercase tracking-widest mb-1">Lote de Despacho</p>
-                    <h2 class="text-4xl font-black tracking-tight">#{{ batch.id }}</h2>
-                    <p class="text-indigo-200 text-sm font-medium mt-1">{{ batch.created_at.strftime('%d/%m/%Y — %H:%M') }}</p>
-                </div>
-                <span class="px-3 py-1.5 rounded-full text-xs font-extrabold tracking-wider uppercase
-                    {% if batch.status == 'dispatched' %}bg-emerald-400/30 text-emerald-200 border border-emerald-400/30
-                    {% else %}bg-amber-400/30 text-amber-200 border border-amber-400/30{% endif %}">
-                    {{ batch.status }}
-                </span>
-            </div>
-
-            <!-- Stats row -->
-            <div class="flex gap-4">
-                <div class="bg-white/10 rounded-xl px-4 py-2.5 flex items-center gap-2.5">
-                    <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    <div>
-                        <p class="text-indigo-300 text-xs font-bold uppercase">Edificios</p>
-                        <p class="text-white font-extrabold text-lg leading-none">{{ batch.orders|length }}</p>
+        <div class="relative z-10 p-8 md:p-12">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-8">
+                <div class="space-y-3">
+                    <span class="eyebrow tracking-[0.4em] !text-amber">Unidad de Despacho</span>
+                    <div class="flex items-baseline gap-4">
+                        <h1 class="text-6xl font-black tracking-tighter text-white italic">#{{ batch.id }}</h1>
+                        <span class="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border
+                            {% if batch.status == 'dispatched' %} bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                            {% else %} bg-amber/10 text-amber border-amber/20 shadow-[0_0_20px_rgba(242,173,61,0.1)] {% endif %}">
+                            {{ batch.status }}
+                        </span>
                     </div>
+                    <p class="text-text-muted font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                        <svg class="w-4 h-4 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        GENERADO EL {{ batch.created_at.strftime('%d/%m/%Y — %H:%M') }}
+                    </p>
                 </div>
-                <div class="bg-white/10 rounded-xl px-4 py-2.5 flex items-center gap-2.5">
-                    <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    <div>
-                        <p class="text-indigo-300 text-xs font-bold uppercase">Productos</p>
-                        <p class="text-white font-extrabold text-lg leading-none">{{ batch.items|length }}</p>
+
+                <!-- Stats Deck -->
+                <div class="grid grid-cols-2 gap-4 w-full md:w-auto">
+                    <div class="bg-navy-deep/60 backdrop-blur-md rounded-2xl p-5 border border-white/5 flex flex-col gap-1 min-w-[140px]">
+                        <span class="text-[9px] font-black text-text-muted uppercase tracking-[0.3em]">Sedes</span>
+                        <span class="text-3xl font-black text-white">{{ batch['orders']|length }}</span>
+                    </div>
+                    <div class="bg-navy-deep/60 backdrop-blur-md rounded-2xl p-5 border border-white/5 flex flex-col gap-1 min-w-[140px]">
+                        <span class="text-[9px] font-black text-text-muted uppercase tracking-[0.3em]">SKUs</span>
+                        <span class="text-3xl font-black text-white">{{ batch['items']|length }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Picking List -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
-            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <!-- Picking List (Main) -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-1.5 h-6 bg-amber rounded-full"></div>
+                <h3 class="text-lg font-black text-white uppercase tracking-tight">Lista Maestra de Preparación</h3>
             </div>
-            <div>
-                <h3 class="text-sm font-bold text-slate-800">Lista de Preparación</h3>
-                <p class="text-xs text-slate-400">Consolidated picking list</p>
-            </div>
-        </div>
-        <ul class="divide-y divide-slate-100">
-            {% for item in batch.items %}
-            <li class="px-5 py-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-                <div class="flex items-center gap-3 min-w-0">
-                    <img src="{{ item.product.imagen_url or '/static/img/default-product.png' }}"
-                         alt="{{ item.product.name }}"
-                         class="w-10 h-10 rounded-xl object-cover border border-slate-200 shrink-0"
-                         onerror="this.src='https://via.placeholder.com/40?text=N/A'">
-                    <div class="min-w-0">
-                        <p class="font-bold text-slate-800 truncate">{{ item.product.name }}</p>
-                        <p class="text-xs text-slate-400 font-medium">{{ item.product.unit }}</p>
+            
+            <div class="card !p-0 border-white/5 bg-navy-accent/10 overflow-hidden">
+                <div class="divide-y divide-white/[0.03]">
+                    {% for item in batch['items'] %}
+                    <div class="p-6 flex items-center justify-between gap-6 hover:bg-white/[0.02] transition-colors group">
+                        <div class="flex items-center gap-5 min-w-0">
+                            <div class="relative">
+                                <img src="{{ item.product.imagen_url or '/static/img/default-product.png' }}"
+                                     alt="{{ item.product.name }}"
+                                     class="w-14 h-14 rounded-2xl object-contain bg-white/5 p-2 border border-white/10 group-hover:border-amber/30 transition-all"
+                                     onerror="this.src='{{ url_for('static', filename='img/default-product.png') }}'">
+                                <div class="absolute -top-2 -right-2 w-6 h-6 bg-amber rounded-full flex items-center justify-center text-[10px] font-black text-navy-deep shadow-lg">
+                                    {{ loop.index }}
+                                </div>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-base font-black text-white truncate uppercase tracking-tight">{{ item.product.name }}</p>
+                                <p class="text-[10px] font-black text-text-muted uppercase tracking-widest mt-1">{{ item.product.unit or 'Unidades' }}</p>
+                            </div>
+                        </div>
+                        <div class="shrink-0">
+                            <div class="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center group-hover:bg-amber group-hover:border-amber transition-all shadow-inner">
+                                <span class="text-2xl font-black text-white group-hover:text-navy-deep tabular-nums">{{ item.total_quantity }}</span>
+                            </div>
+                        </div>
                     </div>
+                    {% else %}
+                    <div class="p-20 text-center text-text-muted italic font-medium">Bandeja de ítems vacía.</div>
+                    {% endfor %}
                 </div>
-                <div class="shrink-0">
-                    <span class="inline-flex items-center justify-center min-w-[3rem] bg-indigo-600 text-white font-black text-xl px-4 py-2 rounded-xl shadow-sm shadow-indigo-200">
-                        {{ item.total_quantity }}
-                    </span>
-                </div>
-            </li>
-            {% else %}
-            <li class="p-8 text-center text-slate-400 text-sm">Sin productos en este lote.</li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <!-- Included Orders -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-        <div class="px-5 py-3.5 border-b border-slate-100">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pedidos Incluidos</h3>
-        </div>
-        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {% for order in batch.orders %}
-            <div class="flex justify-between items-center bg-slate-50 rounded-xl p-3 border border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
-                    </div>
-                    <span class="text-sm font-bold text-slate-700">{{ order.building.name }}</span>
-                </div>
-                <span class="text-xs font-bold text-slate-400 bg-white border border-slate-200 rounded-lg px-2 py-1">{{ order.items|length }} ítems</span>
             </div>
-            {% endfor %}
         </div>
-    </div>
 
-    <!-- CTA Button -->
-    <div class="flex flex-col sm:flex-row gap-4 w-full">
-        {% if batch.status == 'pending' %}
-        <a href="{{ url_for('dispatch.picking', batch_id=batch.id) }}"
-           class="flex-1 flex items-center justify-center gap-2 py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-200/60 hover:shadow-xl active:scale-[.98] transition-all">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-            Ir a Confirmar Despacho
-        </a>
-        {% endif %}
+        <!-- Sidebar: Orders & Actions -->
+        <div class="space-y-10">
+            <!-- Included Orders -->
+            <div class="space-y-6">
+                <h3 class="text-xs font-black text-text-muted uppercase tracking-[0.4em] px-2">Consolidado de Sedes</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    {% for order in batch['orders'] %}
+                    <div class="bg-navy-accent/30 rounded-2xl p-4 border border-white/5 hover:border-white/10 transition-all space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-9 h-9 shrink-0 rounded-xl bg-white/5 flex items-center justify-center text-amber border border-white/5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+                                </div>
+                                <span class="text-[11px] font-black text-white uppercase tracking-tight truncate">{{ order.building.name }}</span>
+                            </div>
+                            <span class="text-[10px] font-black text-text-muted bg-white/5 border border-white/5 rounded-lg px-2 py-1 uppercase shrink-0">{{ order['items']|length }} ítems</span>
+                        </div>
+                        {% if batch.status == 'pending' %}
+                        <details class="group/rej">
+                            <summary class="cursor-pointer text-[10px] font-black text-rose-400/60 hover:text-rose-400 uppercase tracking-widest transition-colors list-none flex items-center gap-1.5">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Rechazar pedido
+                            </summary>
+                            <form method="POST"
+                                  action="{{ url_for('dispatch.reject_order', batch_id=batch.id, order_id=order.id) }}"
+                                  class="mt-3 space-y-2">
+                                <textarea name="rejection_note" rows="2"
+                                          placeholder="Motivo del rechazo (opcional)..."
+                                          class="input-field !py-2 !text-xs resize-none"></textarea>
+                                <button type="submit"
+                                        class="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all">
+                                    Confirmar Rechazo
+                                </button>
+                            </form>
+                        </details>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 shrink-0 {% if batch.status != 'pending' %}w-full{% endif %}">
-            <a href="{{ url_for('dispatch.export_batch', batch_id=batch.id) }}" data-hx-disable="true" target="_blank"
-               class="flex-1 flex items-center justify-center gap-2 py-4 px-4 bg-slate-100 hover:bg-slate-200 text-[#00205B] border border-slate-300 font-extrabold rounded-2xl shadow-sm hover:shadow active:scale-[.98] transition-all text-xs sm:text-sm">
-                <svg class="w-4 h-4 text-[#FAAC2A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                📥 Descargar Consolidado PDF
-            </a>
-            <a href="{{ url_for('dispatch.export_batch_buildings', batch_id=batch.id) }}" data-hx-disable="true" target="_blank"
-               class="flex-1 flex items-center justify-center gap-2 py-4 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-extrabold rounded-2xl shadow-sm hover:shadow active:scale-[.98] transition-all text-xs sm:text-sm">
-                📦 Distribución por Edificio PDF
-            </a>
+            <!-- Global Actions -->
+            <div class="space-y-4 pt-6 mt-6 border-t border-white/5">
+                {% if batch.status == 'pending' %}
+                <a href="{{ url_for('dispatch.picking', batch_id=batch.id) }}"
+                   class="btn btn-primary w-full !py-5 shadow-2xl shadow-amber/20 group">
+                    <svg class="w-6 h-6 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    CONFIRMAR DESPACHO
+                </a>
+                {% endif %}
+
+                <div class="grid grid-cols-1 gap-3">
+                    <a href="{{ url_for('dispatch.export_batch', batch_id=batch.id) }}" hx-disable target="_blank" rel="noopener"
+                       class="btn btn-secondary w-full !py-4 text-[10px] !rounded-2xl border-white/10 hover:border-amber/40 hover:text-amber group">
+                        <svg class="w-4 h-4 text-amber transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        PDF: LISTA CONSOLIDADA
+                    </a>
+                    <a href="{{ url_for('dispatch.export_batch_buildings', batch_id=batch.id) }}" hx-disable target="_blank" rel="noopener"
+                       class="btn btn-secondary w-full !py-4 text-[10px] !rounded-2xl border-white/10 hover:border-amber/40 hover:text-amber group">
+                        <svg class="w-4 h-4 text-amber transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+                        PDF: POR EDIFICIO
+                    </a>
+                </div>
+
+                <a href="{{ url_for('dispatch.list_pending') }}"
+                   class="flex items-center justify-center gap-2 py-4 text-[10px] font-black text-text-muted hover:text-white uppercase tracking-widest transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    REGRESAR AL PANEL
+                </a>
+            </div>
         </div>
-    </div>
-
-    <!-- Back link -->
-    <div class="text-center">
-        <a href="{{ url_for('dispatch.list_pending') }}"
-           class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            Volver a pedidos pendientes
-        </a>
     </div>
 </div>
 {% endblock %}

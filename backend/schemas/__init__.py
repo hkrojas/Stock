@@ -1,1 +1,1 @@
-from . import user, product, building, order
+from . import user, product, building, order, dispatch, inventory, dashboard

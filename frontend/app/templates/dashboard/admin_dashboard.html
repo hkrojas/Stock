@@ -1,122 +1,182 @@
 {% extends 'base.html' %}
-{% block title %}Mi Centro de Operaciones{% endblock %}
+{% block title %}Centro de Operaciones - Grupo Hernández{% endblock %}
 
 {% block content %}
-<div class="space-y-8 pb-10 max-w-5xl mx-auto">
-
+<div class="max-w-[1320px] mx-auto px-5 py-8 md:px-8 xl:px-10 space-y-10">
+    
     <!-- ════════════════════════════════════════════════════ -->
-    <!-- Hero greeting                                        -->
+    <!-- Hero / Centro de Operaciones                         -->
     <!-- ════════════════════════════════════════════════════ -->
-    <div class="relative bg-gradient-to-br from-[#00205B] to-[#001540] rounded-2xl p-7 text-white shadow-lg overflow-hidden border border-[#00205B]">
-        <div class="absolute -top-6 -right-6 text-[11rem] font-black leading-none opacity-5 text-[#FAAC2A]" style="font-family: Arial, sans-serif;">H</div>
-        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-[#FAAC2A]/10 rounded-full blur-2xl"></div>
-        <div class="relative z-10 flex items-start justify-between">
-            <div>
-                <p class="text-[#FAAC2A] text-xs font-bold uppercase tracking-widest mb-1.5 drop-shadow-sm">Centro de Operaciones</p>
-                <h2 class="text-3xl font-black leading-tight tracking-tight">¡Hola, {{ current_user.username }}! 👋</h2>
-                <p class="text-slate-300 text-sm mt-1 font-medium">
-                    {% if pedidos_en_transito > 0 %}
-                        Tienes <span class="text-white font-extrabold">{{ pedidos_en_transito }}</span> pedido{{ 's' if pedidos_en_transito != 1 }} en proceso logístico.
-                    {% else %}
-                        Todo al día. Sin pedidos en curso.
-                    {% endif %}
-                </p>
-            </div>
-            <div class="w-14 h-14 bg-white/10 border border-white/20 shadow-inner rounded-xl flex items-center justify-center shrink-0 text-xl font-black backdrop-blur-sm relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-tr from-transparent to-white/10"></div>
-                <span class="relative z-10 text-[#FAAC2A]">{{ current_user.username[0]|upper }}</span>
-            </div>
-        </div>
+    <div class="relative bg-gradient-to-br from-[#041120] via-[#05142b] to-black rounded-[2.5rem] p-8 md:p-14 text-white shadow-2xl overflow-hidden border border-white/5 group">
+        <!-- Decorative Elements -->
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-amber/10 rounded-full blur-[120px] group-hover:bg-amber/20 transition-all duration-1000"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-navy-accent/20 rounded-full blur-[100px]"></div>
+        
+        <div class="relative z-10">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-12">
+                <div class="flex-1 space-y-6">
+                    <div class="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-2xl">
+                        <span class="w-2 h-2 bg-amber rounded-full animate-pulse shadow-[0_0_12px_rgba(242,173,61,0.8)]"></span>
+                        <span class="text-[10px] font-black uppercase tracking-[0.3em] text-amber-soft">Centro de Operaciones</span>
+                    </div>
+                    
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[0.95]">
+                        <span class="text-white/40 block mb-2 text-3xl font-bold">Resumen Operativo,</span>
+                        <span class="text-white drop-shadow-2xl">{{ (current_user.name if current_user.name else current_user.username) | title }}</span>
+                    </h1>
+                    
+                    <p class="text-text-secondary text-lg md:max-w-xl leading-relaxed font-medium opacity-80">
+                        Estado logístico en tiempo real para su gestión administrativa.
+                    </p>
 
-        <div class="relative z-10 flex gap-4 mt-6">
-            <div class="bg-white/10 border border-white/5 shadow-inner rounded-xl px-5 py-3 flex-1 text-center backdrop-blur-sm hover:bg-white/15 transition-colors">
-                <p class="text-2xl font-black">{{ buildings|length }}</p>
-                <p class="text-xs font-bold text-[#FAAC2A]/90 uppercase tracking-widest mt-1">Edificio{{ 's' if buildings|length != 1 }}</p>
-            </div>
-            <div class="bg-white/10 border border-white/5 shadow-inner rounded-xl px-5 py-3 flex-1 text-center backdrop-blur-sm hover:bg-white/15 transition-colors">
-                <p class="text-2xl font-black">{{ pedidos_activos }}</p>
-                <p class="text-xs font-bold text-[#FAAC2A]/90 uppercase tracking-widest mt-1">Activo{{ 's' if pedidos_activos != 1 }}</p>
-            </div>
-            <div class="bg-white/10 border border-white/5 shadow-inner rounded-xl px-5 py-3 flex-1 text-center backdrop-blur-sm hover:bg-white/15 transition-colors relative">
-                {% if pedidos_en_transito > 0 %}
-                <span class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#FAAC2A] border-2 border-[#00205B] rounded-full animate-pulse"></span>
-                {% endif %}
-                <p class="text-2xl font-black">{{ pedidos_en_transito }}</p>
-                <p class="text-xs font-bold text-[#FAAC2A]/90 uppercase tracking-widest mt-1">En Tránsito</p>
+                    <!-- Operative Date Badge -->
+                    <div class="inline-flex items-center gap-4 bg-white/[0.03] border border-white/5 backdrop-blur-3xl rounded-2xl px-6 py-3 shadow-2xl">
+                        <div class="text-right">
+                            <p class="text-[10px] font-black text-amber uppercase tracking-widest leading-none mb-1">Fecha Operativa</p>
+                            <p class="text-white font-black text-sm tracking-widest tabular-nums uppercase whitespace-nowrap">{{ now.strftime('%d %b, %Y') if now else 'Hoy' }}</p>
+                        </div>
+                        <div class="w-[1px] h-8 bg-white/10"></div>
+                        <div class="w-8 h-8 bg-amber/10 rounded-lg flex items-center justify-center border border-amber/20 shadow-lg shadow-amber/10">
+                            <svg class="w-4 h-4 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Metrics Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 w-full xl:w-auto shrink-0">
+                    <div class="card !p-6 md:!p-8 group/stat !bg-white/[0.02] hover:!bg-white/[0.05] transition-all border-white/5 hover:border-amber/20">
+                        <p class="text-4xl md:text-5xl font-black text-amber mb-2 group-hover/stat:scale-110 transition-transform origin-left">{{ buildings|length }}</p>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Sedes Activas</p>
+                    </div>
+                    <div class="card !p-6 md:!p-8 group/stat !bg-white/[0.02] hover:!bg-white/[0.05] transition-all border-white/5 hover:border-white/10">
+                        <p class="text-4xl md:text-5xl font-black text-white mb-2 group-hover/stat:scale-110 transition-transform origin-left">{{ pedidos_activos }}</p>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Pendientes</p>
+                    </div>
+                    <div class="card !p-6 md:!p-8 group/stat !bg-white/[0.02] hover:!bg-white/[0.05] transition-all border-white/5 hover:border-rose-500/20 col-span-2 lg:col-span-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-4xl md:text-5xl font-black text-rose-400 group-hover/stat:scale-110 transition-transform origin-left">{{ pedidos_en_transito }}</p>
+                            {% if pedidos_en_transito > 0 %}
+                            <span class="flex h-3 w-3 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                            </span>
+                            {% endif %}
+                        </div>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">In Transit</p>
+                    </div>
+                    <div id="api-status-card" class="card !p-6 md:!p-8 group/stat !bg-white/[0.02] hover:!bg-white/[0.05] transition-all border-white/5 hover:border-emerald-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <p id="api-status-text" class="text-4xl md:text-5xl font-black text-slate-500 group-hover/stat:scale-110 transition-transform origin-left">...</p>
+                            <span id="api-status-dot" class="flex h-3 w-3 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-slate-500"></span>
+                            </span>
+                        </div>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Catalyst API</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ════════════════════════════════════════════════════ -->
-    <!-- My Buildings Grid                                    -->
-    <!-- ════════════════════════════════════════════════════ -->
-    <div>
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-extrabold text-[#00205B] uppercase tracking-widest flex items-center gap-2">
-                <svg class="w-4 h-4 text-[#FAAC2A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                Mis Edificios
-            </h3>
-            <span class="text-xs font-bold text-slate-500 tracking-wider bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full shadow-sm">{{ buildings|length }} ASIGNADO{{ 'S' if buildings|length != 1 }}</span>
+    <!-- ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ -->
+    <!-- Alerta: Pedidos despachados esperando recepción      -->
+    <!-- ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ -->
+    {% if pedidos_despachados %}
+    <div class="rounded-[2rem] border border-blue-500/30 bg-blue-500/5 p-6 md:p-8 shadow-[0_0_40px_rgba(59,130,246,0.05)]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-white uppercase tracking-widest">Pedidos en Tránsito</h3>
+                    <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">{{ pedidos_despachados|length }} listo{% if pedidos_despachados|length != 1 %}s{% endif %} para recibir</p>
+                </div>
+            </div>
+            <span class="flex h-3 w-3 relative shrink-0">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            </span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {% for order in pedidos_despachados %}
+            <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-4 flex flex-col gap-3 hover:border-blue-400/30 transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Pedido #{{ order.id }}</span>
+                    <span class="text-[10px] text-text-muted">{{ order.created_at.strftime('%d/%m/%Y') }}</span>
+                </div>
+                <p class="text-sm font-black text-white">{{ order.building.name }}</p>
+                <p class="text-[11px] text-text-muted">{{ order['items']|length }} producto{% if order['items']|length != 1 %}s{% endif %}</p>
+                <form method="POST" action="{{ url_for('orders.receive_order', order_id=order.id) }}">
+                    <button type="submit"
+                            class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/30 transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Confirmar Recepción
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ -->
+    <!-- Buildings Section Grid                             -->
+    <!-- ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ -->
+    <section class="space-y-10">
+        <div class="flex items-end justify-between border-b border-white/5 pb-6">
+            <div class="space-y-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-1 h-5 bg-amber rounded-full shadow-[0_0_12px_rgba(242,173,61,0.4)]"></div>
+                    <span class="eyebrow !text-white text-[10px] tracking-[0.4em]">Activos Directos</span>
+                </div>
+                <h2 class="text-3xl font-black text-white tracking-tight uppercase">Mis Edificios</h2>
+            </div>
+            <div class="px-5 py-2.5 bg-white/[0.03] border border-white/10 rounded-xl backdrop-blur-xl">
+                <span class="text-[10px] font-black text-amber uppercase tracking-[0.2em]">{{ buildings|length }} UNIDADES VINCULADAS</span>
+            </div>
         </div>
 
         {% if buildings %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for building in buildings %}
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden card-hover flex flex-col h-full group">
-                <!-- Top stripe -->
-                <div class="h-1.5 bg-gradient-to-r from-[#00205B] to-[#FAAC2A]"></div>
-                <div class="p-5 flex flex-col flex-1">
-                    <!-- Building info -->
-                    <div class="flex items-center gap-4 mb-5">
-                        {% if building.imagen_frontis %}
-                        <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 shadow-sm border border-slate-200">
-                            <img src="{{ url_for('static', filename='uploads/' + building.imagen_frontis) }}" alt="Frontis de {{ building.name }}" class="w-full h-full object-cover">
-                        </div>
-                        {% else %}
-                        <div class="w-16 h-16 bg-slate-50 border border-slate-200 shadow-inner rounded-xl flex items-center justify-center shrink-0">
-                            <svg class="w-8 h-8 text-[#00205B]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                            </svg>
-                        </div>
-                        {% endif %}
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-[15px] font-extrabold text-[#00205B] leading-tight truncate">{{ building.name }}</h4>
-                            {% if building.address %}
-                            <p class="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-1 truncate">
-                                <svg class="w-3.5 h-3.5 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                {{ building.address }}
-                            </p>
-                            {% endif %}
+            <div class="card flex flex-col group overflow-hidden border-white/10 hover:border-amber/30 hover:shadow-[0_20px_50px_rgba(4,17,32,0.4)]">
+                <!-- Image Header -->
+                <div class="relative h-48 -mx-7 -mt-7 mb-7 overflow-hidden bg-navy/20">
+                    {% if building.imagen_frontis %}
+                    <img src="{{ url_for('static', filename='uploads/' + building.imagen_frontis) }}" alt="{{ building.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy-accent/20 to-navy/30">
+                        <svg class="w-12 h-12 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-navy-deep/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                    <div class="absolute bottom-4 left-6 translate-y-2 group-hover:translate-y-0 transition-transform opacity-0 group-hover:opacity-100">
+                        <p class="text-white text-[10px] font-black uppercase tracking-widest drop-shadow-lg bg-amber/90 px-2 py-1 rounded">Activo</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col flex-1">
+                    <div class="mb-6 flex-1">
+                        <h3 class="text-xl font-black text-rose-50/90 leading-tight mb-2 group-hover:text-amber transition-colors">{{ building.name }}</h3>
+                        <div class="flex items-center gap-2 text-text-secondary">
+                            <svg class="w-4 h-4 shrink-0 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span class="text-[13px] font-bold truncate opacity-80">{{ building.address or 'Sin dirección registrada' }}</span>
                         </div>
                     </div>
 
-                    <div class="flex-1 flex flex-col justify-end">
-                        <!-- Order stats for this building -->
-                        {% set building_orders = building.orders | selectattr("created_by_id", "equalto", current_user.id) | list %}
-                        <div class="flex gap-2 mb-4 h-6">
-                            {% set drafts = building_orders | selectattr("status", "equalto", "draft") | list %}
-                            {% set submitted_count = building_orders | selectattr("status", "equalto", "submitted") | list | length %}
-                            {% set dispatched_count = building_orders | selectattr("status", "equalto", "dispatched") | list | length %}
-                            
-                            {% if drafts %}
-                            <span class="shrink-0 inline-flex items-center gap-1.5 text-xs font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-700 border-amber-200">
-                                <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
-                                BORRADOR
-                            </span>
-                            {% endif %}
-                            {% if submitted_count %}
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-md border bg-emerald-50 text-emerald-700 border-emerald-200">{{ submitted_count }} ENVIADO{{ 'S' if submitted_count != 1 }}</span>
-                            {% endif %}
+                    <!-- Building Stats Badge -->
+                    <div class="flex flex-col gap-5 mt-auto">
+                        <div class="flex items-center justify-between px-5 py-4 bg-white/[0.02] rounded-2xl border border-white/5 group-hover:bg-white/[0.05] transition-colors">
+                            <span class="text-[10px] font-black text-text-muted uppercase tracking-[0.25em]">Pedidos Activos</span>
+                            <span class="text-xs font-black text-white bg-amber/10 h-9 w-9 flex items-center justify-center rounded-xl border border-amber/20 shadow-lg shadow-amber/5">{{ building.active_orders_count or 0 }}</span>
                         </div>
 
-                        <!-- Primary action button -->
                         <form method="POST" action="{{ url_for('orders.create_order', building_id=building.id) }}">
-                            <button type="submit"
-                                class="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-extrabold text-[#00205B] bg-[#FAAC2A] hover:bg-[#E5981D] shadow-sm hover:shadow-md active:scale-[.98] transition-all border border-[#E5981D]/30 group-hover:shadow-[0_4px_14px_0_rgba(250,172,42,0.2)]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
-                                </svg>
+                            <button type="submit" class="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-amber hover:bg-amber/90 text-navy-deep text-sm font-black uppercase tracking-widest transition-all shadow-lg shadow-amber/20 hover:shadow-amber/40 hover:-translate-y-1 active:translate-y-0">
                                 Iniciar Solicitud
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </button>
                         </form>
                     </div>
@@ -124,103 +184,124 @@
             </div>
             {% endfor %}
         </div>
-
         {% else %}
-        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-12 text-center">
-            <div class="w-16 h-16 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-inner">
-                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-                </svg>
+        <!-- Empty State -->
+        <div class="bg-white/5 rounded-[2rem] border-2 border-dashed border-white/10 p-16 text-center">
+            <div class="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
-            <h4 class="text-[15px] font-extrabold text-[#00205B]">Centro de Operaciones Vacío</h4>
-            <p class="text-sm text-slate-500 mt-2 font-medium max-w-sm mx-auto">Tu perfil aún no tiene edificios de mantenimiento asignados. Contacta al administrador central.</p>
+            <h3 class="text-xl font-black text-white mb-2">Centro de Operaciones Vacío</h3>
+            <p class="text-text-muted max-w-sm mx-auto font-medium">No tienes edificios asignados bajo tu administración. Contacta con el área de compras central.</p>
         </div>
         {% endif %}
-    </div>
+    </section>
 
-    <!-- ════════════════════════════════════════════════════ -->
-    <!-- Recent Orders History                               -->
-    <!-- ════════════════════════════════════════════════════ -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden card-hover">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-white shadow-sm border border-slate-200 rounded-xl flex items-center justify-center">
-                    <svg class="w-4 h-4 text-[#00205B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="text-[13px] font-extrabold text-[#00205B]">Tu Historial Documentado</h3>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Últimas solicitudes operativas</p>
-                </div>
+    <!-- ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ -->
+    <!-- Recent Activity History                              -->
+    <!-- ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ -->
+    <div class="card overflow-hidden !p-0 border-white/5 shadow-2xl">
+        <div class="p-10 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+            <div class="space-y-1">
+                <h3 class="text-xl font-black text-white tracking-tight uppercase">Historial Operativo</h3>
+                <p class="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em]">Auditoría de despachos y llegadas</p>
             </div>
+            <a href="{{ url_for('orders.list_buildings') }}" class="btn btn-outline !px-8 !py-3 hover:bg-amber hover:text-navy-deep transition-all !rounded-xl !text-[10px] !font-black !tracking-widest uppercase shadow-xl">Ver todo</a>
         </div>
 
         {% if historial_pedidos %}
-        <ul class="divide-y divide-slate-100">
-            {% for order in historial_pedidos %}
-            <li class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 hover:bg-slate-50 border-l-2 border-transparent hover:border-[#FAAC2A] transition-all group">
-                <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="absolute inset-0 z-0 cursor-pointer" title="Ver detalle del pedido"></a>
-                
-                <div class="flex items-center gap-4 min-w-0 relative z-10 pointer-events-none">
-                    <!-- Order number custom badge -->
-                    <div class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#00205B] group-hover:border-[#00205B] shadow-sm transition-all">
-                        <span class="text-xs font-bold text-slate-500 tracking-wider group-hover:text-[#FAAC2A] transition-colors">#{{ order.id }}</span>
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-[13px] font-extrabold text-[#00205B] truncate group-hover:text-[#FAAC2A] transition-colors">{{ order.building.name }}</p>
-                        <p class="text-xs text-slate-400 font-medium mt-0.5">
-                            {{ order.items|length }} PRODUCTO{{ 'S' if order.items|length != 1 }} <span class="mx-1.5 opacity-50">•</span>
-                            {{ order.created_at.strftime('%d/%m/%Y') }}
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-3 shrink-0 relative z-10">
-                    {% if order.status == 'dispatched' %}
-                    <form method="POST" action="{{ url_for('orders.receive_order', order_id=order.id) }}">
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-sm hover:shadow-md transition-all text-[11px] font-black tracking-widest uppercase active:scale-95 border border-emerald-600">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                            Confirmar Llegada
-                        </button>
-                    </form>
-                    {% endif %}
-
-                    <span class="text-[11px] font-black px-2.5 py-1.5 rounded-md uppercase tracking-wider border pointer-events-none
-                        {% if order.status == 'draft' %} bg-amber-50 text-amber-700 border-amber-200
-                        {% elif order.status == 'submitted' %} bg-amber-100 text-amber-800 border-amber-300
-                        {% elif order.status == 'processing' %} bg-blue-50 text-blue-700 border-blue-200
-                        {% elif order.status == 'dispatched' %} bg-indigo-50 text-indigo-700 border-indigo-200
-                        {% elif order.status == 'delivered' %} bg-emerald-50 text-emerald-700 border-emerald-200
-                        {% else %} bg-slate-50 text-slate-600 border-slate-200 {% endif %}">
-                        {% if order.status == 'draft' %}Borrador
-                        {% elif order.status == 'submitted' %}Enviado
-                        {% elif order.status == 'processing' %}En Proceso
-                        {% elif order.status == 'dispatched' %}En Tránsito
-                        {% elif order.status == 'delivered' %}Recibido
-                        {% else %}{{ order.status }}{% endif %}
-                    </span>
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-[#FAAC2A]/10 transition-colors pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-300 group-hover:text-[#FAAC2A] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </div>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-white/[0.03] border-y border-white/5">
+                    <tr>
+                        <th class="px-8 py-5 text-[10px] font-black text-amber uppercase tracking-[0.3em]">Folio ID</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-white/70 uppercase tracking-[0.3em]">Sede Destino</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-white/70 uppercase tracking-[0.3em]">Fecha</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-white/70 uppercase tracking-[0.3em]">Estado Logístico</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-white/70 uppercase tracking-[0.3em] text-right">Detalles</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for order in historial_pedidos %}
+                    <tr class="group hover:bg-white/[0.02] transition-all">
+                        <td class="px-8 py-7">
+                            <span class="text-[14px] font-black text-white tracking-tight">#{{ order.id }}</span>
+                        </td>
+                        <td class="px-8 py-7">
+                            <p class="text-[15px] font-black text-white group-hover:text-amber transition-colors">{{ order.building.name }}</p>
+                            <p class="text-[10px] text-text-muted font-bold mt-1.5 uppercase tracking-widest">{{ order['items']|length }} SKU solicitados</p>
+                        </td>
+                        <td class="px-8 py-7">
+                            <span class="text-[13px] font-bold text-text-secondary">{{ order.created_at.strftime('%d %b, %Y') }}</span>
+                        </td>
+                        <td class="px-8 py-7">
+                            {% set status_colors = {
+                                'submitted': 'bg-cyan-400/10 text-cyan-400 border-cyan-400/20',
+                                'processing': 'bg-amber-400/10 text-amber-400 border-amber-400/20',
+                                'dispatched': 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20',
+                                'delivered': 'bg-white/10 text-white/60 border-white/10',
+                                'cancelled': 'bg-rose-400/10 text-rose-400 border-rose-400/20'
+                            } %}
+                            <span class="inline-flex items-center px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border {{ status_colors.get(order.status, 'bg-white/5 text-white/40 border-white/10') }} shadow-sm">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-7 text-right">
+                            <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" 
+                               class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/[0.05] border border-white/10 text-white hover:bg-amber hover:text-navy-deep hover:border-amber hover:scale-110 transition-all shadow-xl group/btn">
+                                <svg class="w-5 h-5 transition-transform group-hover/btn:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
-        <div class="px-5 py-12 text-center">
-            <div class="w-14 h-14 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-                <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-            </div>
-            <p class="text-[13px] font-extrabold text-[#00205B]">Sin Operaciones Registradas</p>
-            <p class="text-xs font-medium text-slate-500 mt-1 max-w-xs mx-auto">Selecciona un edificio e inicia tu primera solicitud de materiales.</p>
+        <div class="p-12 text-center">
+            <p class="text-[13px] font-bold text-slate-400 italic">No hay actividad reciente en tu historial.</p>
         </div>
         {% endif %}
     </div>
 
 </div>
+
+{% block scripts %}
+<script>
+async function checkApiStatus() {
+    const card = document.getElementById('api-status-card');
+    const dot = document.getElementById('api-status-dot');
+    const text = document.getElementById('api-status-text');
+    
+    if (!text) return;
+
+    try {
+        const response = await fetch("{{ url_for('dashboard.api_status') }}");
+        const data = await response.json();
+        
+        if (data.status === 'online') {
+            text.innerText = 'ON';
+            text.classList.remove('text-slate-500', 'text-rose-500');
+            text.classList.add('text-emerald-400');
+            dot.querySelector('.animate-ping').className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75';
+            dot.querySelector('.relative').className = 'relative inline-flex rounded-full h-3 w-3 bg-emerald-500';
+            card.classList.add('hover:border-emerald-500/30');
+        } else {
+            throw new Error('Offline');
+        }
+    } catch (error) {
+        text.innerText = 'OFF';
+        text.classList.remove('text-slate-500', 'text-emerald-400');
+        text.classList.add('text-rose-400');
+        dot.querySelector('.animate-ping').className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75';
+        dot.querySelector('.relative').className = 'relative inline-flex rounded-full h-3 w-3 bg-rose-500';
+        card.classList.add('hover:border-rose-500/30');
+    }
+}
+document.addEventListener('DOMContentLoaded', () => {
+    checkApiStatus();
+    setInterval(checkApiStatus, 30000); // Check every 30 seconds
+});
+</script>
+{% endblock %}
+
 {% endblock %}

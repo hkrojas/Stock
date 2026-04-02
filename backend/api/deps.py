@@ -9,11 +9,6 @@ from backend.core import security
 from backend.db.session import get_db
 from backend import models, schemas
 
-reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.PROJECT_NAME.lower().replace(' ', '_')}/api/v1/login/access-token"
-)
-
-# Alternative URL if needed: "/api/v1/login/access-token"
 reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 def get_current_user(
@@ -26,7 +21,7 @@ def get_current_user(
         token_data = schemas.user.TokenData(**payload)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
-            status_code=status.HTTP_03_FORBIDDEN,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
     user = db.query(models.User).filter(models.User.id == int(token_data.sub)).first()
@@ -45,6 +40,16 @@ def get_current_active_superadmin(
 ) -> models.User:
     if current_user.role != "superadmin":
         raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
+            status_code=403, detail="The user doesn't have enough privileges"
+        )
+    return current_user
+
+def get_current_active_management(
+    current_user: models.User = Depends(get_current_user),
+) -> models.User:
+    """Allows manager or superadmin roles."""
+    if current_user.role not in ("manager", "superadmin"):
+        raise HTTPException(
+            status_code=403, detail="Requires manager or superadmin role"
         )
     return current_user

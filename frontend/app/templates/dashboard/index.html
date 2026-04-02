@@ -2,158 +2,202 @@
 {% block title %}Dashboard — Panel de Control{% endblock %}
 
 {% block content %}
-<div class="space-y-8 pb-10">
-
-    <!-- Page Header -->
-    <div>
-        <h2 class="text-2xl font-extrabold text-[#00205B] tracking-tight">Panel de Control</h2>
-        <p class="text-sm font-medium text-slate-500 mt-1">Resumen operativo en tiempo real para <span class="font-extrabold text-[#FAAC2A]">{{ current_user.username }}</span></p>
+<div class="space-y-12 pb-24">
+    <!-- Premium Institutional Header -->
+    <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-10 border-b border-white/5 pb-10">
+        <div class="space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-1.5 h-6 bg-amber rounded-full shadow-[0_0_12px_rgba(242,173,61,0.4)]"></div>
+                <span class="eyebrow tracking-[0.4em] !text-amber text-[10px]">Logística Central</span>
+            </div>
+            <h1 class="h2 !text-5xl !tracking-tighter italic leading-none">Panel de <span class="text-amber">Control</span></h1>
+            <p class="text-text-muted font-medium text-sm md:text-base max-w-xl">
+                Estado logístico en tiempo real para <span class="text-white font-bold capitalize">{{ (current_user.name if current_user.name else current_user.username) }}</span>.
+            </p>
+        </div>
+        
+        <div class="flex items-center gap-5 bg-white/[0.03] border border-white/5 backdrop-blur-3xl rounded-[2rem] px-8 py-5 shadow-2xl self-start xl:self-auto">
+            <div class="text-right">
+                <p class="label-premium !mb-0">Fecha Operativa</p>
+                <p class="text-white font-black text-sm tracking-widest tabular-nums uppercase">{{ now.strftime('%d %b, %Y') if now else 'Hoy' }}</p>
+            </div>
+            <div class="w-[1px] h-10 bg-white/10"></div>
+            <div class="w-10 h-10 bg-amber/10 rounded-xl flex items-center justify-center border border-amber/20 shadow-lg shadow-amber/10">
+                <svg class="w-5 h-5 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+        </div>
     </div>
 
     <!-- ════════════════════════════════════════ -->
-    <!-- KPI Cards Grid — 2x2                   -->
+    <!-- Metrics Grid                          -->
     <!-- ════════════════════════════════════════ -->
-    <div class="grid grid-cols-2 gap-4">
-
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Pedidos Pendientes -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm card-hover flex flex-col justify-between group">
-            <div class="flex justify-between items-start mb-2">
-                <div class="w-10 h-10 bg-[#FAAC2A]/10 group-hover:bg-[#FAAC2A]/20 transition-colors rounded-xl flex items-center justify-center shadow-sm">
-                    <svg class="w-5 h-5 text-[#FAAC2A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                </div>
-                <!-- Símbolo H geométrico integrado en KPIs -->
-                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="h-10 w-auto object-contain opacity-20">
+        <div class="card group hover:translate-y-[-4px] hover:shadow-[0_30px_60px_-15px_rgba(242,173,61,0.1)] duration-500 overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700 -rotate-12 pointer-events-none">
+                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="w-32 h-auto">
             </div>
-            <div>
-                <p class="text-3xl font-black text-[#00205B] leading-none">{{ total_pedidos_pendientes }}</p>
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Pedidos Pendientes</p>
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-14 h-14 bg-amber/5 group-hover:bg-amber/10 rounded-2xl flex items-center justify-center border border-amber/10 group-hover:border-amber/30 transition-all duration-500 shadow-inner">
+                        <svg class="w-7 h-7 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-5xl font-black text-white tracking-tighter">{{ total_pedidos_pendientes }}</p>
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber animate-pulse"></span>
+                        <span class="eyebrow !text-text-muted/60">Pedidos en Espera</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Edificios Activos -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm card-hover flex flex-col justify-between group">
-            <div class="flex justify-between items-start mb-2">
-                <div class="w-10 h-10 bg-[#FAAC2A]/10 group-hover:bg-[#FAAC2A]/20 transition-colors rounded-xl flex items-center justify-center shadow-sm">
-                    <svg class="w-5 h-5 text-[#FAAC2A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                </div>
-                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="h-10 w-auto object-contain opacity-20">
+        <div class="card group hover:translate-y-[-4px] hover:shadow-[0_30px_60px_-15px_rgba(255,255,255,0.05)] duration-500 overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700 -rotate-12 pointer-events-none">
+                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="w-32 h-auto">
             </div>
-            <div>
-                <p class="text-3xl font-black text-[#00205B] leading-none">{{ total_edificios_activos }}</p>
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Edificios Activos</p>
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-14 h-14 bg-white/5 group-hover:bg-white/10 rounded-2xl flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-all duration-500 shadow-inner">
+                        <svg class="w-7 h-7 text-white/50 group-hover:text-white/80 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-5xl font-black text-white tracking-tighter">{{ total_edificios_activos }}</p>
+                    <span class="eyebrow !text-text-muted/60">Edificios Operativos</span>
+                </div>
             </div>
         </div>
 
         <!-- Costo Despachado Mes -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm card-hover flex flex-col justify-between group">
-            <div class="flex justify-between items-start mb-2">
-                <div class="w-10 h-10 bg-[#FAAC2A]/10 group-hover:bg-[#FAAC2A]/20 transition-colors rounded-xl flex items-center justify-center shadow-sm">
-                    <svg class="w-5 h-5 text-[#FAAC2A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="h-10 w-auto object-contain opacity-20">
+        <div class="card group hover:translate-y-[-4px] hover:shadow-[0_30px_60px_-15px_rgba(16,185,129,0.08)] duration-500 overflow-hidden border-emerald-500/10">
+            <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700 -rotate-12 pointer-events-none">
+                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="w-32 h-auto">
             </div>
-            <div>
-                <p class="text-2xl sm:text-3xl font-black text-[#00205B] leading-none">S/ {{ "%.0f"|format(costo_despachado_mes) }}</p>
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Despachado (Mes)</p>
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-14 h-14 bg-emerald-500/5 group-hover:bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/10 group-hover:border-emerald-500/30 transition-all duration-500 shadow-inner">
+                        <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-xl font-bold text-amber/40 tabular-nums">S/</span>
+                        <p class="text-5xl font-black text-white tracking-tighter">{{ "%.2f"|format(costo_despachado_mes) }}</p>
+                    </div>
+                    <span class="eyebrow !text-text-muted/60">Flujo Mensual</span>
+                </div>
             </div>
         </div>
 
         <!-- Productos -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm card-hover flex flex-col justify-between group">
-            <div class="flex justify-between items-start mb-2">
-                <div class="w-10 h-10 bg-[#FAAC2A]/10 group-hover:bg-[#FAAC2A]/20 transition-colors rounded-xl flex items-center justify-center shadow-sm">
-                    <svg class="w-5 h-5 text-[#FAAC2A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                </div>
-                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="h-10 w-auto object-contain opacity-20">
+        <div class="card group hover:translate-y-[-4px] hover:shadow-[0_30px_60px_-15px_rgba(255,255,255,0.05)] duration-500 overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700 -rotate-12 pointer-events-none">
+                <img src="{{ url_for('static', filename='img/logo_trans.png') }}" alt="" class="w-32 h-auto">
             </div>
-            <div>
-                <p class="text-3xl font-black text-[#00205B] leading-none">{{ total_productos }}</p>
-                <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-2">Catálogo</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════ -->
-    <!-- Bar Chart: Pedidos por Edificio         -->
-    <!-- ════════════════════════════════════════ -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden card-hover">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-white border border-slate-200 shadow-sm rounded-xl flex items-center justify-center">
-                    <svg class="w-4 h-4 text-[#00205B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="w-14 h-14 bg-white/5 group-hover:bg-white/10 rounded-2xl flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-all duration-500 shadow-inner">
+                        <svg class="w-7 h-7 text-white/50 group-hover:text-white/80 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-[13px] font-extrabold text-[#00205B]">Pedidos por Edificio</h3>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Distribución de Solicitudes</p>
+                <div class="space-y-1">
+                    <p class="text-5xl font-black text-white tracking-tighter">{{ total_productos }}</p>
+                    <span class="eyebrow !text-text-muted/60">Catálogo de Items</span>
                 </div>
-            </div>
-        </div>
-        <div class="p-5">
-            <canvas id="chartEdificios" height="200"></canvas>
-        </div>
-    </div>
-
-    <!-- ════════════════════════════════════════ -->
-    <!-- Doughnut Chart: Top 5 Productos        -->
-    <!-- ════════════════════════════════════════ -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden card-hover">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-white border border-slate-200 shadow-sm rounded-xl flex items-center justify-center">
-                    <svg class="w-4 h-4 text-[#00205B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="text-[13px] font-extrabold text-[#00205B]">Top 5 Productos Más Solicitados</h3>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Acumulado Total de Pedidos</p>
-                </div>
-            </div>
-        </div>
-        <div class="p-5 flex justify-center w-full">
-            <div class="w-full relative h-[360px]">
-                <canvas id="chartProductos"></canvas>
             </div>
         </div>
     </div>
 
     <!-- ════════════════════════════════════════ -->
-    <!-- Gasto por Edificio                       -->
+    <!-- Charts Section                          -->
     <!-- ════════════════════════════════════════ -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden card-hover">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-emerald-50 border border-emerald-200 shadow-sm rounded-xl flex items-center justify-center">
-                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Bar Chart: Pedidos por Edificio -->
+        <div class="card !p-0 overflow-hidden group">
+            <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-amber/10 rounded-xl flex items-center justify-center border border-amber/20 shadow-lg shadow-amber/5">
+                        <svg class="w-5 h-5 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Pedidos por Edificio</h3>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mt-0.5">Distribución de Solicitudes</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-[13px] font-extrabold text-[#00205B]">Gasto Total por Edificio</h3>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Despachado / Entregado</p>
+            </div>
+            <div class="p-8">
+                <div class="h-[300px] relative">
+                    <canvas id="chartEdificios"></canvas>
                 </div>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-                <thead class="bg-slate-50 text-slate-500 font-bold">
-                    <tr>
-                        <th class="px-5 py-3 border-b border-slate-100 uppercase tracking-widest text-[10px]">Edificio</th>
-                        <th class="px-5 py-3 border-b border-slate-100 text-right uppercase tracking-widest text-[10px]">Costo Total</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
+
+        <!-- Doughnut Chart: Top 5 Productos -->
+        <div class="card !p-0 overflow-hidden group">
+            <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Top 5 Movimientos</h3>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mt-0.5">Acumulado Total de Pedidos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8">
+                <div class="h-[300px] relative">
+                    <canvas id="chartProductos"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- Tables and Alerts Group                -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <!-- Gasto por Edificio (Table) -->
+        <div class="lg:col-span-3 card !p-0 overflow-hidden flex flex-col">
+            <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Inversión por Sede</h3>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mt-0.5">Distribución de Costos Totales</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto flex-grow">
+                <table class="w-full text-left">
+                    <thead class="bg-white/[0.03] text-text-muted font-bold text-[10px] uppercase tracking-[0.2em]">
+                        <tr>
+                            <th class="px-8 py-4">Edificio</th>
+                            <th class="px-8 py-4 text-right">Inversión Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
                     {% for item in costos_por_edificio %}
-                    <tr class="hover:bg-slate-50/70 transition-colors">
-                        <td class="px-5 py-3 font-extrabold text-[#00205B]">{{ item.name }}</td>
-                        <td class="px-5 py-3 text-right font-black text-emerald-600">S/ {{ "%.2f"|format(item.gasto_total) }}</td>
+                    <tr class="group hover:bg-white/[0.02] transition-all duration-300">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500/40"></div>
+                                <span class="text-sm font-bold text-white group-hover:text-amber transition-colors">{{ item.building_name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-right font-black text-emerald-400 tabular-nums">
+                            <span class="text-[10px] opacity-40 mr-1">S/</span>{{ "%.2f"|format(item.gasto_total) }}
+                        </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="2" class="px-5 py-8 text-center text-slate-400 text-xs font-medium">No hay despachos registrados.</td>
+                        <td colspan="2" class="px-8 py-12 text-center text-text-muted text-xs font-medium italic opacity-50">No hay registros operativos.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -161,154 +205,124 @@
         </div>
     </div>
 
-    <!-- ════════════════════════════════════════ -->
-    <!-- Stock Alerts                            -->
-    <!-- ════════════════════════════════════════ -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-rose-50 border border-rose-100 shadow-sm rounded-xl flex items-center justify-center">
-                    <svg class="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="text-[13px] font-extrabold text-[#00205B]">Alertas de Stock Crítico</h3>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Por Debajo del Mínimo</p>
-                </div>
-            </div>
-            {% if alertas_stock or alertas_edificios %}
-            <span class="text-xs font-black bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full border border-rose-200 shadow-sm">{{ (alertas_stock|length) + (alertas_edificios|length) }}</span>
-            {% endif %}
-        </div>
-
-        {% if alertas_stock or alertas_edificios %}
-            {% if alertas_stock %}
-            <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-100">
-                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Almacén Central</h4>
-            </div>
-            <ul class="divide-y divide-slate-100">
-                {% for product in alertas_stock %}
-                <li class="px-5 py-4 flex items-center gap-4 hover:bg-slate-50/70 transition-colors">
-                    <img src="{{ product.imagen_url or '/static/img/default-product.png' }}"
-                         alt="{{ product.name }}"
-                         class="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0"
-                         onerror="this.src='https://via.placeholder.com/48?text=N/A'">
-                    <div class="flex-grow min-w-0">
-                        <p class="text-[13px] font-extrabold text-[#00205B] truncate">{{ product.name }}</p>
-                        <p class="text-xs text-slate-400 font-medium">Mín: {{ product.stock_minimo }} {{ product.unit }}s</p>
+    <!-- Stock Alerts (Feed) -->
+    <div class="lg:col-span-2 flex flex-col gap-6">
+        <div class="card !p-0 overflow-hidden border-rose-500/10 h-full flex flex-col">
+            <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-rose-500/10 rounded-xl flex items-center justify-center border border-rose-500/20 shadow-lg shadow-rose-500/5">
+                        <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
-                    <div class="shrink-0 text-right">
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[13px] shadow-sm
-                            {% if product.stock_actual <= 0 %}bg-rose-500 text-white shadow-rose-500/20{% elif product.stock_actual <= product.stock_minimo // 2 %}bg-rose-100 text-rose-700 border border-rose-200{% else %}bg-amber-100 text-amber-700 border border-amber-200{% endif %}">
-                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                            {{ product.stock_actual }}
+                    <div>
+                        <h3 class="text-base font-bold text-white">Alertas Críticas</h3>
+                        <p class="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mt-0.5">Reposición Inmediata</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-grow overflow-y-auto max-h-[500px] custom-scrollbar">
+                {% if alertas_stock or alertas_edificios %}
+                    {% if alertas_stock %}
+                    <div class="px-6 py-3 bg-white/[0.02] border-b border-white/5">
+                        <span class="text-[9px] font-black text-white/40 uppercase tracking-[0.25em]">Almacén Central</span>
+                    </div>
+                    <div class="divide-y divide-white/5">
+                        {% for product in alertas_stock %}
+                        <div class="px-6 py-4 flex items-center gap-4 hover:bg-white/[0.03] transition-all group">
+                            <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0">
+                                <img src="{{ product.imagen_url or '/static/img/default-product.png' }}"
+                                     alt="" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                     onerror="this.src='{{ url_for('static', filename='img/default-product.png') }}'">
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <p class="text-[13px] font-extrabold text-white truncate group-hover:text-amber transition-colors">{{ product.name }}</p>
+                                <p class="text-[10px] font-bold text-text-muted uppercase tracking-wider">Stock: <span class="text-rose-400">{{ product.stock_actual }}</span> / Mín: {{ product.stock_minimo }}</p>
+                            </div>
+                            <div class="px-2 py-1 rounded-md bg-rose-500/10 border border-rose-500/20">
+                                <span class="text-[10px] font-black text-rose-400 uppercase">Crítico</span>
+                            </div>
                         </div>
-                        <p class="text-xs text-slate-400 font-bold uppercase text-center mt-1">quedan</p>
+                        {% endfor %}
                     </div>
-                </li>
-                {% endfor %}
-            </ul>
-            {% endif %}
+                    {% endif %}
 
-            {% if alertas_edificios %}
-            <div class="px-5 py-2.5 bg-rose-50 border-y border-rose-100">
-                <h4 class="text-xs font-bold text-rose-700 uppercase tracking-widest">Inventario Local (Edificios)</h4>
+                    {% if alertas_edificios %}
+                    <div class="px-6 py-3 bg-rose-500/5 border-y border-rose-500/10">
+                        <span class="text-[9px] font-black text-rose-400/60 uppercase tracking-[0.25em]">Inventarios Locales</span>
+                    </div>
+                    <div class="divide-y divide-white/5">
+                        {% for inv in alertas_edificios %}
+                        <div class="px-6 py-4 flex items-center gap-4 hover:bg-rose-500/5 transition-all group border-l-2 border-transparent hover:border-rose-500/40">
+                            <div class="flex-grow min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black bg-white/10 text-white/60 uppercase">{{ inv.building.name }}</span>
+                                    <span class="text-[11px] font-bold text-rose-200">Requiere Reposición</span>
+                                </div>
+                                <p class="text-[13px] font-black text-white group-hover:text-rose-400 transition-colors">{{ inv.product.name }}</p>
+                                <p class="text-[10px] font-bold text-rose-400/70 uppercase mt-0.5 tracking-wider">CANTIDAD ACTUAL: {{ inv.quantity }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="flex flex-col items-center justify-center p-12 text-center h-full">
+                        <div class="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 border border-emerald-500/20">
+                            <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <h4 class="text-white font-bold mb-1">Operaciones Estables</h4>
+                        <p class="text-xs text-text-muted max-w-[200px]">No se detectan quiebres de stock en la red.</p>
+                    </div>
+                {% endif %}
             </div>
-            <ul class="divide-y divide-rose-100/50">
-                {% for inv in alertas_edificios %}
-                <li class="px-5 py-4 flex items-center gap-4 hover:bg-rose-50/50 transition-colors">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-rose-100 flex items-center justify-center shrink-0 p-1">
-                        <img src="{{ inv.product.imagen_url }}" class="max-h-full object-contain mix-blend-multiply border-0">
-                    </div>
-                    <div class="flex-grow min-w-0">
-                        <p class="text-[13px] font-extrabold text-rose-900 leading-tight">
-                            <span class="font-black">{{ inv.building.name }}</span> requiere reposición de <span class="font-bold">{{ inv.product.name }}</span>
-                        </p>
-                        <p class="text-xs text-rose-600 font-bold mt-1">Stock local: {{ inv.quantity }} <span class="font-medium text-rose-400">(Mín: {{ inv.product.stock_minimo }})</span></p>
-                    </div>
-                    <div class="shrink-0">
-                        <span class="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        </span>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        {% else %}
-        <div class="p-8 text-center">
-            <div class="w-14 h-14 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
-                <svg class="w-7 h-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <p class="text-[13px] font-extrabold text-[#00205B]">¡Stock Controlado!</p>
-            <p class="text-xs font-medium text-slate-500 mt-1">Todos los productos operan por encima del mínimo en todos los almacenes.</p>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- ════════════════════════════════════════ -->
-    <!-- Quick Navigation Grid                  -->
-    <!-- ════════════════════════════════════════ -->
-    <div class="pt-2">
-        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 ml-1">Acceso Rápido</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <a href="{{ url_for('dispatch.list_pending') }}"
-               class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
-                <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
-                    <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                </div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Despacho</p>
-            </a>
-            <a href="{{ url_for('catalog.upload_csv') }}"
-               class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
-                <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
-                    <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                </div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Catálogo CSV</p>
-            </a>
-            <a href="{{ url_for('catalog.assign_building') }}"
-               class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
-                <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
-                    <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                </div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Asignar Edif.</p>
-            </a>
-            <a href="{{ url_for('catalog.create_building') }}"
-               class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
-                <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
-                    <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                </div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Nuevo Edificio</p>
-            </a>
-            <a href="{{ url_for('catalog.create_admin') }}"
-               class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
-                <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
-                    <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                </div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Nuevo Admin</p>
-            </a>
-            <a href="{{ url_for('orders.list_buildings') }}"
-               class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm card-hover text-center group">
-                <div class="w-11 h-11 mx-auto mb-2 bg-slate-50 border border-slate-100 group-hover:bg-[#00205B] group-hover:border-[#00205B] rounded-xl flex items-center justify-center transition-colors duration-300 shadow-sm">
-                    <svg class="w-5 h-5 text-[#00205B] group-hover:text-[#FAAC2A] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
-                </div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wide group-hover:text-[#00205B] transition-colors">Ver Pedidos</p>
-            </a>
         </div>
     </div>
-
 </div>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- Quick Navigation                       -->
+    <!-- ════════════════════════════════════════ -->
+    <div class="mt-12 space-y-6">
+        <div class="flex items-center gap-4">
+            <h3 class="label-premium !mb-0 whitespace-nowrap">Acceso Rápido al Sistema</h3>
+            <div class="h-px bg-white/5 flex-grow"></div>
+        </div>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {% set nav_items = [
+                {'url': 'dispatch.list_pending', 'icon': 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4', 'label': 'Despacho', 'count': total_pedidos_pendientes},
+                {'url': 'catalog.upload_csv', 'icon': 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12', 'label': 'Catálogo CSV'},
+                {'url': 'catalog.assign_building', 'icon': 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'label': 'Asignar Edif.'},
+                {'url': 'catalog.create_building', 'icon': 'M12 4v16m8-8H4', 'label': 'Nuevo Edificio'},
+                {'url': 'catalog.create_admin', 'icon': 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z', 'label': 'Nuevo Admin'},
+                {'url': 'orders.list_buildings', 'icon': 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z', 'label': 'Ver Pedidos'}
+            ] %}
+
+            {% for item in nav_items %}
+            <a href="{{ url_for(item.url) }}" class="card !p-6 flex flex-col items-center justify-center gap-3 group hover:border-amber/40 hover:bg-amber/5 transition-all duration-300">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-amber group-hover:text-navy transition-all duration-500 shadow-lg">
+                        <svg class="w-6 h-6 text-white group-hover:text-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="{{ item.icon }}"/></svg>
+                    </div>
+                    {% if item.count and item.count > 0 %}
+                    <span class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-navy-deep shadow-lg">{{ item.count }}</span>
+                    {% endif %}
+                </div>
+                <p class="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] group-hover:text-white transition-colors text-center">{{ item.label }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-const gradientBlue = (ctx) => {
-    const g = ctx.createLinearGradient(0, 0, 0, 200);
-    g.addColorStop(0, 'rgba(0,32,91,0.85)');
-    g.addColorStop(1, 'rgba(0,32,91,0.4)');
+const gradientAmber = (ctx) => {
+    const g = ctx.createLinearGradient(0, 0, 0, 300);
+    g.addColorStop(0, '#F2AD3D');
+    g.addColorStop(1, 'rgba(242, 173, 61, 0.1)');
     return g;
 };
 
@@ -321,14 +335,15 @@ new Chart(ctxBar, {
         datasets: [{
             label: 'Pedidos',
             data: {{ chart_edificios_data | tojson }},
-            backgroundColor: [
-                'rgba(0, 32, 91, 0.9)',
-                'rgba(250, 172, 42, 0.9)',
-                'rgba(15, 45, 105, 0.9)',
-                'rgba(255, 185, 65, 0.9)',
-            ],
-            borderRadius: 8,
+            backgroundColor: (context) => {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return null;
+                return gradientAmber(ctx);
+            },
+            borderRadius: 12,
             borderSkipped: false,
+            barThickness: 32,
         }]
     },
     options: {
@@ -337,21 +352,26 @@ new Chart(ctxBar, {
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: '#00205B',
-                padding: 12,
-                cornerRadius: 10,
-                titleFont: { weight: 'bold', size: 13 },
-                bodyFont: { size: 12, weight: 'bold' },
+                backgroundColor: '#0B1F33',
+                titleColor: '#F2AD3D',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                padding: 16,
+                cornerRadius: 16,
+                titleFont: { weight: '800', size: 14, family: 'Manrope, sans-serif' },
+                bodyFont: { size: 13, weight: '600', family: 'Inter, sans-serif' },
+                displayColors: false
             }
         },
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { stepSize: 1, color: '#94a3b8', font: { weight: '600', size: 11 } },
-                grid: { color: 'rgba(241,245,249,1.0)', lineWidth: 1.5 }
+                ticks: { stepSize: 1, color: 'rgba(255, 255, 255, 0.3)', font: { weight: '700', size: 10, family: 'Inter, sans-serif' } },
+                grid: { color: 'rgba(255, 255, 255, 0.03)', drawBorder: false }
             },
             x: {
-                ticks: { color: '#00205B', font: { weight: '800', size: 11 } },
+                ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { weight: '700', size: 10, family: 'Inter, sans-serif' } },
                 grid: { display: false }
             }
         }
@@ -367,40 +387,41 @@ new Chart(ctxPie, {
         datasets: [{
             data: {{ chart_productos_data | tojson }},
             backgroundColor: [
-                '#00205B', // Dark Blue principal
-                '#FAAC2A', // Naranja/Ambar principal
-                '#0ea5e9', // Sky Blue (Tailwind)
-                '#10b981', // Emerald Green (Tailwind)
-                '#f43f5e', // Rose / Pink (Tailwind)
+                '#F2AD3D', 
+                '#06286F', 
+                '#4F46E5', 
+                '#10B981', 
+                '#6B7280'
             ],
-            borderColor: '#ffffff',
-            borderWidth: 4,
-            hoverOffset: 8,
+            borderColor: '#041120',
+            borderWidth: 8,
+            hoverOffset: 20,
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '65%',
+        cutout: '72%',
         plugins: {
             legend: {
                 position: 'bottom',
                 labels: {
-                    padding: 16,
+                    padding: 24,
                     usePointStyle: true,
-                    pointStyleWidth: 10,
-                    font: { size: 11, weight: '800', family: 'sans-serif' },
-                    color: '#00205B'
+                    pointStyleWidth: 12,
+                    font: { size: 11, weight: '800', family: 'Inter, sans-serif' },
+                    color: 'rgba(255, 255, 255, 0.5)'
                 }
             },
             tooltip: {
-                backgroundColor: '#00205B',
-                padding: 12,
-                cornerRadius: 10,
-                bodyFont: { weight: 'bold' },
-                callbacks: {
-                    label: ctx => ` ${ctx.label}: ${ctx.raw} und.`
-                }
+                backgroundColor: '#0B1F33',
+                titleColor: '#F2AD3D',
+                bodyColor: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                padding: 16,
+                cornerRadius: 16,
+                bodyFont: { weight: '800', size: 13, family: 'Inter, sans-serif' }
             }
         }
     }
