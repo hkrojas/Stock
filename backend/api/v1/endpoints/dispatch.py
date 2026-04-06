@@ -1,11 +1,12 @@
 import io
 from typing import Any, List
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from backend import models, schemas
 from backend.api import deps
 from backend.services.dispatch_service import DispatchService
+from backend.services.purchase_service import PurchaseService
 from backend.domain.constants import BatchStatus, OrderStatus
 
 router = APIRouter()
@@ -252,13 +253,36 @@ def list_purchases(
 @router.post("/purchases/", response_model=schemas.dispatch.PurchaseDetail)
 def create_purchase(
     *,
+    request: Request,
     db: Session = Depends(deps.get_db),
     purchase_in: schemas.dispatch.PurchaseCreate,
     current_user: models.User = Depends(deps.get_current_active_management),
 ) -> Any:
     """Create a new purchase and update central stock."""
-    service = DispatchService(db, current_user)
-    return service.create_purchase(purchase_in)
+    # Note: delegates to PurchaseService for atomic stock intake and audit logging.
+    # Public contract (URL, request/response shape) is unchanged.
+    request_id = getattr(request.state, "request_id", "unknown")
+    # Map schemas.dispatch.PurchaseCreate → schemas.purchase.PurchaseCreate
+    purchase_create = schemas.purchase.PurchaseCreate(
+        supplier=purchase_in.supplier,
+        invoice_number=purchase_in.invoice_number,
+        purchase_date=purchase_in.purchase_date,
+        notes=purchase_in.notes,
+        items=[
+            schemas.purchase.PurchaseItemCreate(
+                product_id=item.product_id,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+            )
+            for item in purchase_in.items
+        ]
+    )
+    return PurchaseService.create_purchase(
+        db=db,
+        purchase_in=purchase_create,
+        actor_id=current_user.id,
+        request_id=request_id,
+    )
 
 
 @router.get("/purchases/{id}", response_model=schemas.dispatch.PurchaseDetail)

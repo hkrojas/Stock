@@ -136,7 +136,7 @@ class DispatchBatch(Base):
     id = Column(Integer, primary_key=True, index=True)
     created_by_id = Column(Integer, ForeignKey('user.id'), nullable=False, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
-    status = Column(String(20), default='draft')  # 'draft', 'consolidated', 'confirmed', 'shipped', 'cancelled'
+    status = Column(String(20), default='pending')  # 'pending', 'dispatched', 'cancelled' — see BatchStatus
     version = Column(Integer, nullable=False, default=1)
 
     __mapper_args__ = {
@@ -145,7 +145,7 @@ class DispatchBatch(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "status IN ('draft', 'consolidated', 'confirmed', 'shipped', 'cancelled')",
+            "status IN ('pending', 'dispatched', 'cancelled')",
             name='chk_batch_status'
         ),
     )

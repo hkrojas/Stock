@@ -84,7 +84,7 @@ class PurchaseService:
                 request_id=request_id,
                 payload={
                     "purchase_id": purchase.id,
-                    "provider": purchase.provider,
+                    "supplier": purchase.supplier,
                     "total_amount": purchase.total_amount,
                     "item_count": len(purchase_in.items)
                 }
