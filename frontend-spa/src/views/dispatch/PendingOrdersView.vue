@@ -37,8 +37,8 @@
         <span class="section-label">Seleccion actual</span>
         <p class="text-white font-black text-xl">{{ selectedOrderIds.length }} orden(es)</p>
       </div>
-      <button type="button" class="btn btn-primary" :disabled="!selectedOrderIds.length || dispatchStore.submitLoading" @click="isConfirmOpen = true">
-        {{ dispatchStore.submitLoading ? "Consolidando..." : "Consolidar en batch" }}
+      <button type="button" class="btn btn-primary" :disabled="!selectedOrderIds.length || dispatchStore.isConsolidating" @click="isConfirmOpen = true">
+        {{ dispatchStore.isConsolidating ? "Consolidando..." : "Consolidar en batch" }}
       </button>
     </div>
 
@@ -55,7 +55,7 @@
       title="Consolidar ordenes"
       :description="`Se consolidaran ${selectedOrderIds.length} orden(es) en un nuevo batch.`"
       confirm-label="Crear batch"
-      :loading="dispatchStore.submitLoading"
+      :loading="dispatchStore.isConsolidating"
       @close="isConfirmOpen = false"
       @confirm="consolidate"
     />
@@ -79,11 +79,13 @@ const isConfirmOpen = ref(false)
 const pendingOrders = computed(() => dispatchStore.pendingOrders.map(normalizeOrder))
 
 async function consolidate() {
+  if (dispatchStore.isConsolidating) return
+
   try {
-    isConfirmOpen.value = false
     const result = await dispatchStore.consolidateOrders(selectedOrderIds.value)
     latestBatchId.value = result.batch_id
     selectedOrderIds.value = []
+    isConfirmOpen.value = false
     await dispatchStore.fetchPendingOrders()
     uiStore.success(`Batch #${result.batch_id} creado con ${result.orders_count} orden(es).`, "Consolidacion completada")
   } catch (error) {

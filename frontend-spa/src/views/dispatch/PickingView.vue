@@ -35,8 +35,8 @@
     </div>
 
     <div class="flex justify-end">
-      <button type="button" class="btn btn-primary" :disabled="dispatchStore.submitLoading" @click="isConfirmOpen = true">
-        {{ dispatchStore.submitLoading ? "Confirmando..." : "Confirmar despacho" }}
+      <button type="button" class="btn btn-primary" :disabled="dispatchStore.isConfirmingBatch" @click="isConfirmOpen = true">
+        {{ dispatchStore.isConfirmingBatch ? "Confirmando..." : "Confirmar despacho" }}
       </button>
     </div>
 
@@ -46,7 +46,7 @@
       title="Confirmar despacho"
       description="Se descontara el stock central y las ordenes del batch pasaran a estado despachado."
       confirm-label="Despachar"
-      :loading="dispatchStore.submitLoading"
+      :loading="dispatchStore.isConfirmingBatch"
       @close="isConfirmOpen = false"
       @confirm="confirmDispatch"
     />
@@ -76,9 +76,10 @@ const picking = computed(() => (dispatchStore.currentPicking ? normalizePickingR
 const items = computed(() => picking.value?.items ?? [])
 
 async function confirmDispatch() {
+  if (dispatchStore.isConfirmingBatch) return
   try {
-    isConfirmOpen.value = false
     const result = await dispatchStore.confirmBatch(route.params.batchId)
+    isConfirmOpen.value = false
     uiStore.success(result.message, "Despacho confirmado")
   } catch (error) {
     uiStore.error(error.message, "No se pudo confirmar el despacho")

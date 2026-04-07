@@ -105,11 +105,11 @@
                   <textarea v-model="rejectionNotes[order.id]" rows="2" placeholder="Motivo del rechazo (opcional)..." class="input-field !py-2 !text-xs resize-none"></textarea>
                   <button
                     type="button"
-                    class="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all"
-                    :disabled="dispatchStore.submitLoading"
+                    class="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all disabled:opacity-50"
+                    :disabled="dispatchStore.isRejectingOrder"
                     @click="handleReject(order.id)"
                   >
-                    Confirmar Rechazo
+                    {{ dispatchStore.isRejectingOrder ? "RECHAZANDO..." : "Confirmar Rechazo" }}
                   </button>
                 </div>
               </details>
@@ -128,25 +128,25 @@
           <div class="grid grid-cols-1 gap-3">
             <button
               type="button"
-              class="btn btn-secondary w-full !py-4 text-[10px] !rounded-2xl border-white/10 hover:border-amber/40 hover:text-amber group"
-              :disabled="dispatchStore.submitLoading"
+              class="btn btn-secondary w-full !py-4 text-[10px] !rounded-2xl border-white/10 hover:border-amber/40 hover:text-amber group disabled:opacity-50"
+              :disabled="dispatchStore.isExporting"
               @click="downloadBatch('consolidated')"
             >
               <svg class="w-4 h-4 text-amber transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              PDF: LISTA CONSOLIDADA
+              {{ dispatchStore.isExporting ? "EXPORTANDO..." : "PDF: LISTA CONSOLIDADA" }}
             </button>
             <button
               type="button"
-              class="btn btn-secondary w-full !py-4 text-[10px] !rounded-2xl border-white/10 hover:border-amber/40 hover:text-amber group"
-              :disabled="dispatchStore.submitLoading"
+              class="btn btn-secondary w-full !py-4 text-[10px] !rounded-2xl border-white/10 hover:border-amber/40 hover:text-amber group disabled:opacity-50"
+              :disabled="dispatchStore.isExporting"
               @click="downloadBatch('buildings')"
             >
               <svg class="w-4 h-4 text-amber transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
               </svg>
-              PDF: POR EDIFICIO
+              {{ dispatchStore.isExporting ? "EXPORTANDO..." : "PDF: POR EDIFICIO" }}
             </button>
           </div>
 
@@ -192,6 +192,7 @@ function formatDateTime(value) {
 }
 
 async function handleReject(orderId) {
+  if (dispatchStore.isRejectingOrder) return
   try {
     await dispatchStore.rejectOrder(batch.value.id, orderId, rejectionNotes[orderId] || "")
     uiStore.success(`La orden #${orderId} fue devuelta al administrador.`, "Pedido rechazado")
@@ -203,6 +204,7 @@ async function handleReject(orderId) {
 }
 
 async function downloadBatch(kind) {
+  if (dispatchStore.isExporting) return
   try {
     const result = await dispatchStore.exportBatch(batch.value.id, kind)
     const blobUrl = URL.createObjectURL(result.blob)

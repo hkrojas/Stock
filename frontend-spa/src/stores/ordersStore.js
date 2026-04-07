@@ -7,7 +7,12 @@ export const useOrdersStore = defineStore("orders", () => {
   const orders = ref([])
   const currentOrder = ref(null)
   const isLoading = ref(false)
-  const submitLoading = ref(false)
+  const isCreatingOrder = ref(false)
+  const isUpdatingItem = ref(false)
+  const isSubmittingOrder = ref(false)
+  const isReopeningOrder = ref(false)
+  const isCancellingOrder = ref(false)
+  const isReceivingOrder = ref(false)
   const error = ref("")
 
   async function fetchOrders(params = {}) {
@@ -43,7 +48,7 @@ export const useOrdersStore = defineStore("orders", () => {
   }
 
   async function createOrder(buildingId) {
-    submitLoading.value = true
+    isCreatingOrder.value = true
     error.value = ""
 
     try {
@@ -54,12 +59,12 @@ export const useOrdersStore = defineStore("orders", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isCreatingOrder.value = false
     }
   }
 
   async function addItem(orderId, payload) {
-    submitLoading.value = true
+    isUpdatingItem.value = true
     error.value = ""
 
     try {
@@ -69,12 +74,12 @@ export const useOrdersStore = defineStore("orders", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isUpdatingItem.value = false
     }
   }
 
   async function removeItem(orderId, itemId) {
-    submitLoading.value = true
+    isUpdatingItem.value = true
     error.value = ""
 
     try {
@@ -84,12 +89,12 @@ export const useOrdersStore = defineStore("orders", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isUpdatingItem.value = false
     }
   }
 
   async function updateItem(orderId, itemId, payload) {
-    submitLoading.value = true
+    isUpdatingItem.value = true
     error.value = ""
 
     try {
@@ -99,12 +104,19 @@ export const useOrdersStore = defineStore("orders", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isUpdatingItem.value = false
     }
   }
 
   async function updateOrderStatus(orderId, action) {
-    submitLoading.value = true
+    const stateMap = {
+      submit: isSubmittingOrder,
+      reopen: isReopeningOrder,
+      cancel: isCancellingOrder,
+      receive: isReceivingOrder,
+    }
+    const state = stateMap[action]
+    if (state) state.value = true
     error.value = ""
 
     try {
@@ -114,7 +126,7 @@ export const useOrdersStore = defineStore("orders", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      if (state) state.value = false
     }
   }
 
@@ -122,7 +134,12 @@ export const useOrdersStore = defineStore("orders", () => {
     orders,
     currentOrder,
     isLoading,
-    submitLoading,
+    isCreatingOrder,
+    isUpdatingItem,
+    isSubmittingOrder,
+    isReopeningOrder,
+    isCancellingOrder,
+    isReceivingOrder,
     error,
     fetchOrders,
     fetchOrder,

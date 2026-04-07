@@ -68,11 +68,11 @@
             {{ catalogStore.error }}
           </div>
 
-          <button type="submit" class="btn btn-primary w-full shadow-2xl shadow-amber/10" :disabled="!selectedFile || catalogStore.submitLoading">
+          <button type="submit" class="btn btn-primary w-full shadow-2xl shadow-amber/10" :disabled="!selectedFile || catalogStore.isUploadingCsv">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            {{ catalogStore.submitLoading ? "Procesando e Importando..." : "Procesar e Importar CSV" }}
+            {{ catalogStore.isUploadingCsv ? "Procesando e Importando..." : "Procesar e Importar CSV" }}
           </button>
         </form>
       </div>
@@ -161,7 +161,7 @@
       :description="pendingUpload ? `Se intentara revertir ${pendingUpload.filename}. Los productos con historial quedaran inactivos.` : ''"
       confirm-label="Eliminar lote"
       confirm-variant="danger"
-      :loading="catalogStore.submitLoading"
+      :loading="catalogStore.isDeletingCsv"
       @close="pendingUploadId = null"
       @confirm="confirmDeleteUpload"
     />
@@ -204,7 +204,7 @@ function formatUploadDate(value) {
 }
 
 async function handleUpload() {
-  if (!selectedFile.value) {
+  if (catalogStore.isUploadingCsv || !selectedFile.value) {
     return
   }
 
@@ -220,7 +220,7 @@ async function handleUpload() {
 }
 
 async function confirmDeleteUpload() {
-  if (!pendingUpload.value) {
+  if (catalogStore.isDeletingCsv || !pendingUpload.value) {
     return
   }
 

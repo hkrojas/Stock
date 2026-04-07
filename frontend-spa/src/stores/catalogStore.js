@@ -14,7 +14,18 @@ export const useCatalogStore = defineStore("catalog", () => {
   const csvUploads = ref([])
   const lastCsvUpload = ref(null)
   const isLoading = ref(false)
-  const submitLoading = ref(false)
+  const isSubmittingProduct = ref(false)
+  const isSubmittingAdmin = ref(false)
+  const isSubmittingBuilding = ref(false)
+  const isTogglingProduct = ref(false)
+  const isUploadingCsv = ref(false)
+  const isDeletingAdmin = ref(false)
+  const isDeletingBuilding = ref(false)
+  const isAssigningBuildings = ref(false)
+  const isDeletingCsv = ref(false)
+  const isPreviewingProduct = ref(false)
+  const isSyncingProduct = ref(false)
+  const submitLoading = ref(false) // Generic fallback
   const error = ref("")
 
   async function fetchProducts(query = "") {
@@ -52,40 +63,47 @@ export const useCatalogStore = defineStore("catalog", () => {
   }
 
   async function createProduct(payload) {
-    submitLoading.value = true
+    if (isSubmittingProduct.value) return
+    isSubmittingProduct.value = true
     error.value = ""
 
     try {
       const { data } = await apiClient.post("/catalog/", payload)
-      products.value = [data, ...products.value]
+      if (Array.isArray(products.value)) {
+        products.value = [data, ...products.value]
+      }
       return data
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSubmittingProduct.value = false
     }
   }
 
   async function updateProduct(productId, payload) {
-    submitLoading.value = true
+    if (isSubmittingProduct.value) return
+    isSubmittingProduct.value = true
     error.value = ""
 
     try {
       const { data } = await apiClient.put(`/catalog/${productId}`, payload)
       currentProduct.value = data
-      products.value = products.value.map((product) => (product.id === data.id ? data : product))
+      if (Array.isArray(products.value)) {
+        products.value = products.value.map((product) => (product.id === data.id ? data : product))
+      }
       return data
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSubmittingProduct.value = false
     }
   }
 
   async function toggleProduct(productId) {
-    submitLoading.value = true
+    if (isTogglingProduct.value) return
+    isTogglingProduct.value = true
     error.value = ""
 
     try {
@@ -96,12 +114,13 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isTogglingProduct.value = false
     }
   }
 
   async function uploadCsv(file) {
-    submitLoading.value = true
+    if (isUploadingCsv.value) return
+    isUploadingCsv.value = true
     error.value = ""
 
     try {
@@ -119,7 +138,7 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isUploadingCsv.value = false
     }
   }
 
@@ -158,23 +177,27 @@ export const useCatalogStore = defineStore("catalog", () => {
   }
 
   async function createAdmin(payload) {
-    submitLoading.value = true
+    if (isSubmittingAdmin.value) return
+    isSubmittingAdmin.value = true
     error.value = ""
 
     try {
       const { data } = await apiClient.post("/users/", payload)
-      admins.value = [data, ...admins.value]
+      if (Array.isArray(admins.value)) {
+        admins.value = [data, ...admins.value]
+      }
       return data
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSubmittingAdmin.value = false
     }
   }
 
   async function updateAdmin(adminId, payload, options = {}) {
-    submitLoading.value = true
+    if (isSubmittingAdmin.value) return
+    isSubmittingAdmin.value = true
     error.value = ""
 
     try {
@@ -188,18 +211,21 @@ export const useCatalogStore = defineStore("catalog", () => {
 
       const { data } = await apiClient.put(`/users/${adminId}`, payload, { params })
       currentAdmin.value = data
-      admins.value = admins.value.map((admin) => (admin.id === data.id ? data : admin))
+      if (Array.isArray(admins.value)) {
+        admins.value = admins.value.map((admin) => (admin.id === data.id ? data : admin))
+      }
       return data
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSubmittingAdmin.value = false
     }
   }
 
   async function deleteAdmin(adminId) {
-    submitLoading.value = true
+    if (isDeletingAdmin.value) return
+    isDeletingAdmin.value = true
     error.value = ""
 
     try {
@@ -210,7 +236,7 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isDeletingAdmin.value = false
     }
   }
 
@@ -263,40 +289,47 @@ export const useCatalogStore = defineStore("catalog", () => {
   }
 
   async function createBuilding(payload) {
-    submitLoading.value = true
+    if (isSubmittingBuilding.value) return
+    isSubmittingBuilding.value = true
     error.value = ""
 
     try {
       const { data } = await apiClient.post("/buildings/", payload)
-      buildings.value = [data, ...buildings.value]
+      if (Array.isArray(buildings.value)) {
+        buildings.value = [data, ...buildings.value]
+      }
       return data
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSubmittingBuilding.value = false
     }
   }
 
   async function updateBuilding(buildingId, payload) {
-    submitLoading.value = true
+    if (isSubmittingBuilding.value) return
+    isSubmittingBuilding.value = true
     error.value = ""
 
     try {
       const { data } = await apiClient.put(`/buildings/${buildingId}`, payload)
       currentBuilding.value = data
-      buildings.value = buildings.value.map((building) => (building.id === data.id ? data : building))
+      if (Array.isArray(buildings.value)) {
+        buildings.value = buildings.value.map((building) => (building.id === data.id ? data : building))
+      }
       return data
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSubmittingBuilding.value = false
     }
   }
 
   async function deleteBuilding(buildingId) {
-    submitLoading.value = true
+    if (isDeletingBuilding.value) return
+    isDeletingBuilding.value = true
     error.value = ""
 
     try {
@@ -307,12 +340,13 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isDeletingBuilding.value = false
     }
   }
 
   async function assignBuildings(adminId, buildingIds) {
-    submitLoading.value = true
+    if (isAssigningBuildings.value) return
+    isAssigningBuildings.value = true
     error.value = ""
 
     try {
@@ -325,7 +359,7 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isAssigningBuildings.value = false
     }
   }
 
@@ -346,7 +380,8 @@ export const useCatalogStore = defineStore("catalog", () => {
   }
 
   async function deleteCsvUpload(uploadId) {
-    submitLoading.value = true
+    if (isDeletingCsv.value) return
+    isDeletingCsv.value = true
     error.value = ""
 
     try {
@@ -357,12 +392,13 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isDeletingCsv.value = false
     }
   }
 
   async function previewProduct(sourceUrl) {
-    submitLoading.value = true
+    if (isPreviewingProduct.value) return
+    isPreviewingProduct.value = true
     error.value = ""
 
     try {
@@ -374,12 +410,13 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isPreviewingProduct.value = false
     }
   }
 
   async function syncProduct(productId) {
-    submitLoading.value = true
+    if (isSyncingProduct.value) return
+    isSyncingProduct.value = true
     error.value = ""
 
     try {
@@ -393,7 +430,7 @@ export const useCatalogStore = defineStore("catalog", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSyncingProduct.value = false
     }
   }
 
@@ -408,6 +445,17 @@ export const useCatalogStore = defineStore("catalog", () => {
     csvUploads,
     lastCsvUpload,
     isLoading,
+    isSubmittingProduct,
+    isSubmittingAdmin,
+    isSubmittingBuilding,
+    isTogglingProduct,
+    isUploadingCsv,
+    isDeletingAdmin,
+    isDeletingBuilding,
+    isAssigningBuildings,
+    isDeletingCsv,
+    isPreviewingProduct,
+    isSyncingProduct,
     submitLoading,
     error,
     fetchProducts,

@@ -73,9 +73,17 @@
                   <span class="text-[9px] font-bold text-text-muted">Min: {{ inv.product.stockMinimo }}</span>
                 </div>
               </div>
-              <button type="button" class="w-10 h-10 flex items-center justify-center rounded-xl bg-amber text-navy-deep transition-all hover:scale-105" :disabled="ordersStore.submitLoading" @click="addItem(inv.product, Math.max((inv.product.stockMinimo || 0) - inv.quantity, 1))">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button
+                type="button"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-amber text-navy-deep transition-all hover:scale-105 disabled:opacity-50"
+                :disabled="ordersStore.isUpdatingItem"
+                @click="addItem(inv.product, Math.max((inv.product.stockMinimo || 0) - inv.quantity, 1))"
+              >
+                <svg v-if="!ordersStore.isUpdatingItem" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                </svg>
+                <svg v-else class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="2 2 20 20">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
             </article>
@@ -119,7 +127,14 @@
               </div>
               <div class="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
                 <input v-model.number="productQuantities[product.id]" type="number" min="1" class="input-field !px-3 !py-3 text-center">
-                <button type="button" class="btn btn-primary !min-h-[44px]" :disabled="ordersStore.submitLoading" @click="addItem(product, productQuantities[product.id])">Agregar</button>
+                <button
+                  type="button"
+                  class="btn btn-primary !min-h-[44px]"
+                  :disabled="ordersStore.isUpdatingItem"
+                  @click="addItem(product, productQuantities[product.id])"
+                >
+                  {{ ordersStore.isUpdatingItem ? "..." : "Agregar" }}
+                </button>
               </div>
             </article>
           </div>
@@ -133,7 +148,7 @@
             </div>
             <span class="inline-flex items-center px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-[0.18em]" :class="statusClass(order.status)">{{ order.status }}</span>
           </div>
-          <OrderItemsList :items="order.items" :editable="order.status === 'draft'" @remove="removeItem" />
+          <OrderItemsList :items="order.items" :editable="order.status === 'draft'" :loading="ordersStore.isUpdatingItem" @remove="removeItem" />
         </article>
       </section>
 
@@ -149,10 +164,18 @@
 
         <article class="card space-y-4">
           <span class="section-label">Acciones</span>
-          <button v-if="order.status === 'draft'" type="button" class="btn btn-primary w-full" :disabled="ordersStore.submitLoading" @click="openStatusModal('submit')">Enviar orden</button>
-          <button v-else-if="order.status === 'submitted'" type="button" class="btn btn-secondary w-full" :disabled="ordersStore.submitLoading" @click="openStatusModal('reopen')">Reabrir orden</button>
-          <button v-else-if="order.status === 'dispatched'" type="button" class="btn btn-primary w-full" :disabled="ordersStore.submitLoading" @click="openStatusModal('receive')">Confirmar recepcion</button>
-          <button v-if="['draft', 'submitted'].includes(order.status)" type="button" class="btn btn-secondary w-full" :disabled="ordersStore.submitLoading" @click="openStatusModal('cancel')">Cancelar orden</button>
+          <button v-if="order.status === 'draft'" type="button" class="btn btn-primary w-full" :disabled="ordersStore.isSubmittingOrder" @click="openStatusModal('submit')">
+            {{ ordersStore.isSubmittingOrder ? "Enviando..." : "Enviar orden" }}
+          </button>
+          <button v-else-if="order.status === 'submitted'" type="button" class="btn btn-secondary w-full" :disabled="ordersStore.isReopeningOrder" @click="openStatusModal('reopen')">
+            {{ ordersStore.isReopeningOrder ? "Reabriendo..." : "Reabrir orden" }}
+          </button>
+          <button v-else-if="order.status === 'dispatched'" type="button" class="btn btn-primary w-full" :disabled="ordersStore.isReceivingOrder" @click="openStatusModal('receive')">
+            {{ ordersStore.isReceivingOrder ? "Confirmando..." : "Confirmar recepcion" }}
+          </button>
+          <button v-if="['draft', 'submitted'].includes(order.status)" type="button" class="btn btn-secondary w-full" :disabled="ordersStore.isCancellingOrder" @click="openStatusModal('cancel')">
+            {{ ordersStore.isCancellingOrder ? "Cancelando..." : "Cancelar orden" }}
+          </button>
         </article>
       </aside>
     </div>
@@ -164,7 +187,7 @@
       :description="modalContent.description"
       :confirm-label="modalContent.confirmLabel"
       :confirm-variant="modalContent.confirmVariant"
-      :loading="ordersStore.submitLoading"
+      :loading="ordersStore.isSubmittingOrder || ordersStore.isReopeningOrder || ordersStore.isCancellingOrder || ordersStore.isReceivingOrder"
       @close="pendingAction = ''"
       @confirm="confirmStatusAction"
     />
@@ -268,6 +291,7 @@ async function ensureOrder() {
 }
 
 async function addItem(product, quantity = 1) {
+  if (ordersStore.isUpdatingItem) return
   try {
     await ordersStore.addItem(order.value.id, {
       product_id: product.id,
@@ -281,6 +305,7 @@ async function addItem(product, quantity = 1) {
 }
 
 async function removeItem(itemId) {
+  if (ordersStore.isUpdatingItem) return
   try {
     await ordersStore.removeItem(order.value.id, itemId)
     uiStore.success("El item fue retirado de la orden.", "Item removido")
@@ -294,7 +319,11 @@ function openStatusModal(action) {
 }
 
 async function confirmStatusAction() {
-  if (!pendingAction.value) {
+  if (!pendingAction.value ||
+      ordersStore.isSubmittingOrder ||
+      ordersStore.isReopeningOrder ||
+      ordersStore.isCancellingOrder ||
+      ordersStore.isReceivingOrder) {
     return
   }
 

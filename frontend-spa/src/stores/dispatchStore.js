@@ -11,7 +11,11 @@ export const useDispatchStore = defineStore("dispatch", () => {
   const purchases = ref([])
   const currentPurchase = ref(null)
   const isLoading = ref(false)
-  const submitLoading = ref(false)
+  const isConsolidating = ref(false)
+  const isConfirmingBatch = ref(false)
+  const isRejectingOrder = ref(false)
+  const isExporting = ref(false)
+  const isPurchasing = ref(false)
   const error = ref("")
 
   async function fetchPendingOrders() {
@@ -31,7 +35,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
   }
 
   async function consolidateOrders(orderIds) {
-    submitLoading.value = true
+    isConsolidating.value = true
     error.value = ""
 
     try {
@@ -41,7 +45,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isConsolidating.value = false
     }
   }
 
@@ -94,7 +98,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
   }
 
   async function confirmBatch(batchId) {
-    submitLoading.value = true
+    isConfirmingBatch.value = true
     error.value = ""
 
     try {
@@ -104,12 +108,12 @@ export const useDispatchStore = defineStore("dispatch", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isConfirmingBatch.value = false
     }
   }
 
   async function rejectOrder(batchId, orderId, rejectionNote = "") {
-    submitLoading.value = true
+    isRejectingOrder.value = true
     error.value = ""
 
     try {
@@ -121,12 +125,12 @@ export const useDispatchStore = defineStore("dispatch", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isRejectingOrder.value = false
     }
   }
 
   async function exportBatch(batchId, kind = "consolidated") {
-    submitLoading.value = true
+    isExporting.value = true
     error.value = ""
 
     const endpoint =
@@ -148,7 +152,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isExporting.value = false
     }
   }
 
@@ -157,7 +161,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/dispatch/purchases/")
+      const { data } = await apiClient.get("/purchases/")
       purchases.value = data
       return data
     } catch (requestError) {
@@ -173,7 +177,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get(`/dispatch/purchases/${purchaseId}`)
+      const { data } = await apiClient.get(`/purchases/${purchaseId}`)
       currentPurchase.value = data
       return data
     } catch (requestError) {
@@ -185,18 +189,18 @@ export const useDispatchStore = defineStore("dispatch", () => {
   }
 
   async function createPurchase(payload) {
-    submitLoading.value = true
+    isPurchasing.value = true
     error.value = ""
 
     try {
-      const { data } = await apiClient.post("/dispatch/purchases/", payload)
+      const { data } = await apiClient.post("/purchases/", payload)
       purchases.value = [data, ...purchases.value]
       return data
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isPurchasing.value = false
     }
   }
 
@@ -208,7 +212,11 @@ export const useDispatchStore = defineStore("dispatch", () => {
     purchases,
     currentPurchase,
     isLoading,
-    submitLoading,
+    isConsolidating,
+    isConfirmingBatch,
+    isRejectingOrder,
+    isExporting,
+    isPurchasing,
     error,
     fetchPendingOrders,
     consolidateOrders,

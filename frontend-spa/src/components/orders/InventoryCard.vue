@@ -48,18 +48,22 @@
             type="number"
             min="1"
             :max="inventory.quantity"
-            class="w-16 h-10 px-2 bg-white/5 border border-white/10 rounded-xl text-center font-black text-amber outline-none focus:border-amber/40 focus:bg-white/10 transition-all shadow-inner"
+            :disabled="isConsuming || isAdjusting"
+            class="w-16 h-10 px-2 bg-white/5 border border-white/10 rounded-xl text-center font-black text-amber outline-none focus:border-amber/40 focus:bg-white/10 transition-all shadow-inner disabled:opacity-50"
           >
           <button
             type="button"
-            class="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border bg-red-500/5 text-red-400 border-red-500/20 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-xl shadow-red-500/5"
-            :disabled="inventory.quantity === 0"
+            class="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border bg-red-500/5 text-red-400 border-red-500/20 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-xl shadow-red-500/5 disabled:opacity-50"
+            :disabled="inventory.quantity === 0 || isConsuming || isAdjusting"
             @click="emit('consume', { id: inventory.id, quantity: safeConsumeQuantity })"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg v-if="!isConsuming" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4" />
             </svg>
-            Registrar consumo
+            <svg v-else class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="2 2 20 20">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {{ isConsuming ? "PROCESANDO..." : "Registrar consumo" }}
           </button>
         </div>
 
@@ -69,17 +73,22 @@
               v-model.number="adjustQuantity"
               type="number"
               min="1"
-              class="w-16 h-8 px-2 bg-white/5 border border-white/5 rounded-lg text-center font-black text-emerald-400/60 outline-none focus:border-emerald-500/40 focus:bg-white/10 transition-all shadow-inner text-[11px]"
+              :disabled="isConsuming || isAdjusting"
+              class="w-16 h-8 px-2 bg-white/5 border border-white/5 rounded-lg text-center font-black text-emerald-400/60 outline-none focus:border-emerald-500/40 focus:bg-white/10 transition-all shadow-inner text-[11px] disabled:opacity-50"
             >
             <button
               type="button"
-              class="flex-1 h-8 flex items-center justify-center gap-2 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all border bg-emerald-500/5 text-emerald-400 border-emerald-500/10 hover:bg-emerald-500 hover:text-white hover:border-emerald-500"
+              class="flex-1 h-8 flex items-center justify-center gap-2 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all border bg-emerald-500/5 text-emerald-400 border-emerald-500/10 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 disabled:opacity-50"
+              :disabled="isConsuming || isAdjusting"
               @click="emit('adjust', { id: inventory.id, quantity: safeAdjustedQuantity })"
             >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-if="!isAdjusting" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
               </svg>
-              Reposicion directa
+              <svg v-else class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="2 2 20 20">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {{ isAdjusting ? "SINCRONIZANDO..." : "Reposicion directa" }}
             </button>
           </div>
         </div>
@@ -93,6 +102,8 @@ import { computed, ref, watch } from "vue"
 
 const props = defineProps({
   inventory: { type: Object, required: true },
+  isConsuming: { type: Boolean, default: false },
+  isAdjusting: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(["consume", "adjust"])

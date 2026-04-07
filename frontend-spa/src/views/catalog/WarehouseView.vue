@@ -67,7 +67,7 @@
       :title="pendingProduct?.active ? 'Desactivar producto' : 'Activar producto'"
       :description="pendingProduct ? `Confirma el cambio de estado para ${pendingProduct.name}.` : ''"
       :confirm-label="pendingProduct?.active ? 'Desactivar' : 'Activar'"
-      :loading="catalogStore.submitLoading"
+      :loading="catalogStore.isTogglingProduct"
       @close="pendingProductId = null"
       @confirm="confirmToggle"
     />
@@ -103,8 +103,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.803a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
                 </div>
-                <button type="button" class="btn btn-primary !h-16 px-10 !rounded-2xl group/scrape shadow-xl shadow-amber/10" :disabled="catalogStore.submitLoading" @click="previewProduct">
-                  <span class="tracking-widest font-black text-xs">{{ catalogStore.submitLoading && !dynamicPreview ? "Procesando" : "Extraer" }}</span>
+                <button type="button" class="btn btn-primary !h-16 px-10 !rounded-2xl group/scrape shadow-xl shadow-amber/10" :disabled="catalogStore.isPreviewingProduct" @click="previewProduct">
+                  <span class="tracking-widest font-black text-xs">{{ catalogStore.isPreviewingProduct && !dynamicPreview ? "Procesando" : "Extraer" }}</span>
                   <svg class="w-5 h-5 transition-transform group-hover/scrape:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -138,7 +138,7 @@
                 </div>
               </div>
               <div class="pt-6 border-t border-white/10">
-                <button type="button" class="btn btn-primary w-full !h-16 !rounded-2xl shadow-2xl shadow-amber/20" :disabled="catalogStore.submitLoading" @click="saveDynamicProduct">
+                <button type="button" class="btn btn-primary w-full !h-16 !rounded-2xl shadow-2xl shadow-amber/20" :disabled="catalogStore.isSubmittingProduct" @click="saveDynamicProduct">
                   <span class="tracking-widest font-black text-sm">Vincular al Catalogo Maestro</span>
                 </button>
               </div>

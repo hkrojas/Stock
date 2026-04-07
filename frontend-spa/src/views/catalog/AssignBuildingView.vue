@@ -23,8 +23,8 @@
           <label class="label-premium">Buscar edificio</label>
           <input v-model="query" type="search" placeholder="Filtrar por nombre o direccion" class="input-field" />
         </div>
-        <button type="button" class="btn btn-primary w-full" :disabled="!selectedAdminId || !selectedBuildingIds.length || catalogStore.submitLoading" @click="handleAssign">
-          {{ catalogStore.submitLoading ? "Guardando..." : "Guardar asignacion" }}
+        <button type="button" class="btn btn-primary w-full" :disabled="!selectedAdminId || !selectedBuildingIds.length || catalogStore.isAssigningBuildings" @click="handleAssign">
+          {{ catalogStore.isAssigningBuildings ? "Guardando..." : "Guardar asignacion" }}
         </button>
       </div>
 
@@ -82,6 +82,8 @@ const filteredBuildings = computed(() => {
 })
 
 async function handleAssign() {
+  if (catalogStore.isAssigningBuildings) return
+
   try {
     const result = await catalogStore.assignBuildings(selectedAdminId.value, selectedBuildingIds.value)
     uiStore.success(result.message, "Asignacion actualizada")

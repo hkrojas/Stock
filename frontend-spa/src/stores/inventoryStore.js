@@ -7,7 +7,9 @@ export const useInventoryStore = defineStore("inventory", () => {
   const items = ref([])
   const consumptionRows = ref([])
   const isLoading = ref(false)
-  const submitLoading = ref(false)
+  const isSubmittingEntry = ref(false)
+  const isConsuming = ref(false)
+  const isAdjusting = ref(false)
   const error = ref("")
 
   async function fetchInventory(buildingId) {
@@ -29,7 +31,8 @@ export const useInventoryStore = defineStore("inventory", () => {
   }
 
   async function addInventory(payload) {
-    submitLoading.value = true
+    if (isSubmittingEntry.value) return
+    isSubmittingEntry.value = true
     error.value = ""
 
     try {
@@ -39,12 +42,13 @@ export const useInventoryStore = defineStore("inventory", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isSubmittingEntry.value = false
     }
   }
 
   async function consumeInventory(itemId, payload) {
-    submitLoading.value = true
+    if (isConsuming.value) return
+    isConsuming.value = true
     error.value = ""
 
     try {
@@ -55,12 +59,13 @@ export const useInventoryStore = defineStore("inventory", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isConsuming.value = false
     }
   }
 
   async function adjustInventory(itemId, payload) {
-    submitLoading.value = true
+    if (isAdjusting.value) return
+    isAdjusting.value = true
     error.value = ""
 
     try {
@@ -71,7 +76,7 @@ export const useInventoryStore = defineStore("inventory", () => {
       error.value = requestError.message
       throw requestError
     } finally {
-      submitLoading.value = false
+      isAdjusting.value = false
     }
   }
 
@@ -97,7 +102,9 @@ export const useInventoryStore = defineStore("inventory", () => {
     items,
     consumptionRows,
     isLoading,
-    submitLoading,
+    isSubmittingEntry,
+    isConsuming,
+    isAdjusting,
     error,
     fetchInventory,
     addInventory,

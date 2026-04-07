@@ -134,7 +134,7 @@
       :description="pendingBuilding ? `Confirmar desactivacion de ${pendingBuilding.name}. Si tiene pedidos asociados, el backend bloqueara la operacion.` : ''"
       confirm-label="Eliminar"
       confirm-variant="danger"
-      :loading="catalogStore.submitLoading"
+      :loading="catalogStore.isDeletingBuilding"
       @close="pendingBuildingId = null"
       @confirm="confirmDelete"
     />

@@ -88,7 +88,7 @@
             <button
               type="button"
               class="btn btn-primary !rounded-2xl !py-4.5 px-12 self-start group/btn shadow-[0_20px_40px_-12px_rgba(242,173,61,0.25)] h-14"
-              :disabled="ordersStore.submitLoading"
+              :disabled="ordersStore.isCreatingOrder"
               @click="startOrder(building.id)"
             >
               <span class="tracking-widest font-black text-xs">ACCEDER A LA SEDE</span>
@@ -144,6 +144,7 @@ const draftBuildingIds = computed(() => {
 })
 
 async function startOrder(buildingId) {
+  if (ordersStore.isCreatingOrder) return
   try {
     const order = await ordersStore.createOrder(buildingId)
     await router.push({ name: "ordersOrderDetail", params: { orderId: order.id } })

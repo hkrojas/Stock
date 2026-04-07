@@ -76,13 +76,19 @@
       </div>
 
       <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-4 border-t border-white/5">
+      <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-4 border-t border-white/5">
         <RouterLink :to="{ name: 'ordersMyInventory' }" class="btn btn-secondary w-full sm:w-auto px-10 !rounded-2xl border-white/10 hover:border-white/20">
           DESCARTAR
         </RouterLink>
-        <button type="submit" class="btn btn-primary w-full sm:w-auto px-12 !py-4 shadow-2xl shadow-amber/10 group" :disabled="inventoryStore.submitLoading">
-          <span>EJECUTAR INGRESO</span>
-          <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="submit" class="btn btn-primary w-full sm:w-auto px-12 !py-4 shadow-2xl shadow-amber/10 group" :disabled="inventoryStore.isSubmittingEntry">
+          <span class="tracking-widest font-black text-xs">
+            {{ inventoryStore.isSubmittingEntry ? "PROCESANDO..." : "EJECUTAR INGRESO" }}
+          </span>
+          <svg v-if="!inventoryStore.isSubmittingEntry" class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+          <svg v-else class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="2 2 20 20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
       </div>
@@ -117,6 +123,7 @@ const productOptions = computed(() => catalogStore.products.map(normalizeProduct
 const selectedBuildingLabel = computed(() => buildingOptions.value.find((item) => String(item.id) === String(form.buildingId))?.name ?? "")
 
 async function submitForm() {
+  if (inventoryStore.isSubmittingEntry) return
   try {
     await inventoryStore.addInventory({
       building_id: Number(form.buildingId),

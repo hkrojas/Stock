@@ -119,7 +119,7 @@
       :description="pendingAdmin ? `Confirma la eliminacion permanente de ${pendingAdmin.name || pendingAdmin.username}.` : ''"
       confirm-label="Eliminar"
       confirm-variant="danger"
-      :loading="catalogStore.submitLoading"
+      :loading="catalogStore.isDeletingAdmin"
       @close="pendingAdminId = null"
       @confirm="confirmDelete"
     />

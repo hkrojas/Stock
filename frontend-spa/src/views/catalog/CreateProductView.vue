@@ -93,11 +93,16 @@
             <RouterLink :to="{ name: 'catalogWarehouse' }" class="btn btn-secondary flex-1 !h-[56px] !rounded-xl">
               <span class="font-bold text-[11px] tracking-widest uppercase">CANCELAR</span>
             </RouterLink>
-            <button type="submit" class="btn btn-primary flex-1 !h-[56px] !rounded-xl shadow-lg shadow-amber/10" :disabled="catalogStore.submitLoading">
-              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button type="submit" class="btn btn-primary flex-1 !h-[56px] !rounded-xl shadow-lg shadow-amber/10" :disabled="catalogStore.isSubmittingProduct">
+              <svg v-if="!catalogStore.isSubmittingProduct" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
               </svg>
-              <span class="font-bold text-[11px] tracking-widest uppercase text-navy-deep">REGISTRAR PRODUCTO</span>
+              <svg v-else class="w-5 h-5 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="2 2 20 20">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span class="font-bold text-[11px] tracking-widest uppercase text-navy-deep">
+                {{ catalogStore.isSubmittingProduct ? "REGISTRANDO..." : "REGISTRAR PRODUCTO" }}
+              </span>
             </button>
           </div>
         </form>
@@ -146,6 +151,7 @@ const form = reactive({
 const productPreview = computed(() => assetUrl(form.imageUrl, defaultProductUrl))
 
 async function submitForm() {
+  if (catalogStore.isSubmittingProduct) return
   submitError.value = ""
 
   try {

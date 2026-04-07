@@ -33,6 +33,8 @@
         v-for="item in inventory"
         :key="item.id"
         :inventory="item"
+        :is-consuming="inventoryStore.isConsuming"
+        :is-adjusting="inventoryStore.isAdjusting"
         @consume="consumeInventory"
         @adjust="adjustInventory"
       />
@@ -68,6 +70,7 @@ const uiStore = useUiStore()
 const inventory = computed(() => inventoryStore.items.map(normalizeInventoryItem))
 
 async function consumeInventory({ id, quantity }) {
+  if (inventoryStore.isConsuming || inventoryStore.isAdjusting) return
   try {
     const updated = await inventoryStore.consumeInventory(id, { quantity: Number(quantity) })
     const item = normalizeInventoryItem(updated)
@@ -78,6 +81,7 @@ async function consumeInventory({ id, quantity }) {
 }
 
 async function adjustInventory({ id, quantity }) {
+  if (inventoryStore.isConsuming || inventoryStore.isAdjusting) return
   try {
     const updated = await inventoryStore.adjustInventory(id, { quantity: Number(quantity) })
     const item = normalizeInventoryItem(updated)
