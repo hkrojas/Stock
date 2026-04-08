@@ -114,14 +114,14 @@
 
         <div class="pt-6 flex flex-col md:flex-row gap-4 border-t border-white/10">
           <RouterLink :to="{ name: 'dashboard' }" class="btn btn-secondary flex-1">Cancelar</RouterLink>
-          <button type="submit" class="btn btn-primary flex-1 shadow-2xl shadow-amber/10" :disabled="catalogStore.isSubmittingBuilding">
-            <svg v-if="!catalogStore.isSubmittingBuilding" class="w-5 h-5 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button type="submit" class="btn btn-primary flex-1 shadow-2xl shadow-amber/10" :disabled="buildingStore.isSubmitting">
+            <svg v-if="!buildingStore.isSubmitting" class="w-5 h-5 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
             </svg>
             <svg v-else class="w-5 h-5 mx-1 animate-spin" fill="none" stroke="currentColor" viewBox="2 2 20 20">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            {{ catalogStore.isSubmittingBuilding ? "REGISTRANDO..." : "Registrar Sede" }}
+            {{ buildingStore.isSubmitting ? "REGISTRANDO..." : "Registrar Sede" }}
           </button>
         </div>
       </form>
@@ -143,13 +143,15 @@
 import { computed, onMounted, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useBuildingStore } from "@/stores/buildingStore"
+import { useUserStore } from "@/stores/userStore"
 import { useUiStore } from "@/stores/uiStore"
 import { assetUrl, defaultBuildingUrl } from "@/utils/formatters"
 import { normalizeUser } from "@/utils/normalizers"
 
 const router = useRouter()
-const catalogStore = useCatalogStore()
+const buildingStore = useBuildingStore()
+const userStore = useUserStore()
 const uiStore = useUiStore()
 
 const adminMenuOpen = ref(false)
@@ -163,7 +165,7 @@ const form = reactive({
 })
 
 const adminOptions = computed(() =>
-  catalogStore.admins.map(normalizeUser).filter((admin) => admin.role === "admin"),
+  userStore.users.map(normalizeUser).filter((admin) => admin.role === "admin"),
 )
 const selectedAdminLabel = computed(() => {
   if (!form.adminId) {
@@ -179,11 +181,11 @@ function selectAdmin(value) {
 }
 
 async function submitForm() {
-  if (catalogStore.isSubmittingBuilding) return
+  if (buildingStore.isSubmitting) return
   submitError.value = ""
 
   try {
-    await catalogStore.createBuilding({
+    await buildingStore.createBuilding({
       name: form.name,
       address: form.address || null,
       departments_count: Number(form.departmentsCount || 0),
@@ -202,6 +204,6 @@ async function submitForm() {
 }
 
 onMounted(() => {
-  catalogStore.fetchAdmins("admin")
+  userStore.fetchUsers("admin")
 })
 </script>

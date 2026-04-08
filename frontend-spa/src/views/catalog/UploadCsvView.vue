@@ -64,28 +64,28 @@
             </div>
           </div>
 
-          <div v-if="catalogStore.error" class="rounded-[24px] border border-rose-500/20 bg-rose-500/10 px-5 py-4 text-sm text-rose-200">
-            {{ catalogStore.error }}
+          <div v-if="productStore.error" class="rounded-[24px] border border-rose-500/20 bg-rose-500/10 px-5 py-4 text-sm text-rose-200">
+            {{ productStore.error }}
           </div>
 
-          <button type="submit" class="btn btn-primary w-full shadow-2xl shadow-amber/10" :disabled="!selectedFile || catalogStore.isUploadingCsv">
+          <button type="submit" class="btn btn-primary w-full shadow-2xl shadow-amber/10" :disabled="!selectedFile || productStore.isUploadingCsv">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            {{ catalogStore.isUploadingCsv ? "Procesando e Importando..." : "Procesar e Importar CSV" }}
+            {{ productStore.isUploadingCsv ? "Procesando e Importando..." : "Procesar e Importar CSV" }}
           </button>
         </form>
       </div>
     </div>
 
-    <div v-if="catalogStore.csvUploads.length" class="space-y-6">
+    <div v-if="productStore.csvUploads.length" class="space-y-6">
       <div class="flex items-center gap-3 px-2">
         <h3 class="text-2xl font-black tracking-tight text-white">Historial de Operaciones</h3>
-        <span class="pill">{{ catalogStore.csvUploads.length }} Cargas</span>
+        <span class="pill">{{ productStore.csvUploads.length }} Cargas</span>
       </div>
 
       <div class="card !p-0 overflow-hidden divide-y divide-white/5 border-white/5 bg-white/[0.01]">
-        <div v-for="upload in catalogStore.csvUploads" :key="upload.id" class="p-5 flex items-center justify-between hover:bg-white/[0.03] transition-colors group">
+        <div v-for="upload in productStore.csvUploads" :key="upload.id" class="p-5 flex items-center justify-between hover:bg-white/[0.03] transition-colors group">
           <div class="flex items-center gap-5 min-w-0">
             <div class="bg-white/5 border border-white/10 rounded-2xl p-3.5 shrink-0 shadow-sm transition-transform group-hover:scale-105">
               <svg class="w-6 h-6 text-text-muted group-hover:text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +120,7 @@
     <div v-if="catalogPreview.length" class="space-y-6">
       <div class="flex items-center gap-3 px-2">
         <h3 class="text-2xl font-black tracking-tight text-white">Vistazo Rapido al Catalogo</h3>
-        <span class="pill !text-emerald-400 !bg-emerald-400/10 !border-emerald-400/20">{{ catalogStore.products.length }} Items</span>
+        <span class="pill !text-emerald-400 !bg-emerald-400/10 !border-emerald-400/20">{{ productStore.products.length }} Items</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -139,8 +139,8 @@
             </div>
           </div>
         </div>
-        <div v-if="catalogStore.products.length > 10" class="col-span-full text-center py-4">
-          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted italic">+ {{ catalogStore.products.length - 10 }} productos adicionales ocultos en esta vista</p>
+        <div v-if="productStore.products.length > 10" class="col-span-full text-center py-4">
+          <p class="text-[11px] font-black uppercase tracking-widest text-text-muted italic">+ {{ productStore.products.length - 10 }} productos adicionales ocultos en esta vista</p>
         </div>
       </div>
     </div>
@@ -161,7 +161,7 @@
       :description="pendingUpload ? `Se intentara revertir ${pendingUpload.filename}. Los productos con historial quedaran inactivos.` : ''"
       confirm-label="Eliminar lote"
       confirm-variant="danger"
-      :loading="catalogStore.isDeletingCsv"
+      :loading="productStore.isDeletingCsv"
       @close="pendingUploadId = null"
       @confirm="confirmDeleteUpload"
     />
@@ -172,21 +172,21 @@
 import { computed, onMounted, ref } from "vue"
 
 import AppModal from "@/components/ui/AppModal.vue"
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useProductStore } from "@/stores/productStore"
 import { useUiStore } from "@/stores/uiStore"
 import { normalizeProduct } from "@/utils/normalizers"
 
-const catalogStore = useCatalogStore()
+const productStore = useProductStore()
 const uiStore = useUiStore()
 const selectedFile = ref(null)
 const fileInputKey = ref(0)
 const pendingUploadId = ref(null)
 
-const catalogPreview = computed(() => catalogStore.products.slice(0, 10).map(normalizeProduct))
-const pendingUpload = computed(() => catalogStore.csvUploads.find((upload) => upload.id === pendingUploadId.value) ?? null)
+const catalogPreview = computed(() => productStore.products.slice(0, 10).map(normalizeProduct))
+const pendingUpload = computed(() => productStore.csvUploads.find((upload) => upload.id === pendingUploadId.value) ?? null)
 
 onMounted(async () => {
-  await Promise.all([catalogStore.fetchCsvUploads(), catalogStore.fetchProducts()])
+  await Promise.all([productStore.fetchCsvUploads(), productStore.fetchProducts()])
 })
 
 function handleFileChange(event) {
@@ -204,13 +204,13 @@ function formatUploadDate(value) {
 }
 
 async function handleUpload() {
-  if (catalogStore.isUploadingCsv || !selectedFile.value) {
+  if (productStore.isUploadingCsv || !selectedFile.value) {
     return
   }
 
   try {
-    const result = await catalogStore.uploadCsv(selectedFile.value)
-    await catalogStore.fetchProducts()
+    const result = await productStore.uploadCsv(selectedFile.value)
+    await productStore.fetchProducts()
     uiStore.success(`${result.products_created} creados, ${result.products_updated} actualizados.`, "Carga CSV completada")
     selectedFile.value = null
     fileInputKey.value += 1
@@ -220,13 +220,13 @@ async function handleUpload() {
 }
 
 async function confirmDeleteUpload() {
-  if (catalogStore.isDeletingCsv || !pendingUpload.value) {
+  if (productStore.isDeletingCsv || !pendingUpload.value) {
     return
   }
 
   try {
-    const result = await catalogStore.deleteCsvUpload(pendingUpload.value.id)
-    await catalogStore.fetchProducts()
+    const result = await productStore.deleteCsvUpload(pendingUpload.value.id)
+    await productStore.fetchProducts()
     uiStore.success(result.message, "Lote revertido")
     pendingUploadId.value = null
   } catch (error) {
@@ -234,6 +234,26 @@ async function confirmDeleteUpload() {
   }
 }
 </script>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #f2ad3d;
+}
+</style>
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {

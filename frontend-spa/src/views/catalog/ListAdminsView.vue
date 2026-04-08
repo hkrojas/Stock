@@ -23,11 +23,11 @@
       </div>
     </div>
 
-    <div v-if="catalogStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
-      {{ catalogStore.error }}
+    <div v-if="userStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
+      {{ userStore.error }}
     </div>
 
-    <div v-if="catalogStore.isLoading" class="space-y-6">
+    <div v-if="userStore.isLoading" class="space-y-6">
       <DashboardSkeleton />
     </div>
 
@@ -116,7 +116,7 @@
       :description="pendingAdmin ? `Confirma la eliminacion permanente de ${pendingAdmin.name || pendingAdmin.username}.` : ''"
       confirm-label="Eliminar"
       confirm-variant="danger"
-      :loading="catalogStore.isDeletingAdmin"
+      :loading="userStore.isDeleting"
       @close="pendingAdminId = null"
       @confirm="confirmDelete"
     />
@@ -129,16 +129,16 @@ import { computed, onMounted, ref } from "vue"
 import AppModal from "@/components/ui/AppModal.vue"
 import EmptyState from "@/components/ui/EmptyState.vue"
 import DashboardSkeleton from "@/components/common/DashboardSkeleton.vue"
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useUserStore } from "@/stores/userStore"
 import { useUiStore } from "@/stores/uiStore"
 
-const catalogStore = useCatalogStore()
+const userStore = useUserStore()
 const uiStore = useUiStore()
 const query = ref("")
 const pendingAdminId = ref(null)
 
 const filteredAdmins = computed(() => {
-  const admins = catalogStore.admins ?? []
+  const admins = userStore.admins ?? []
   const term = query.value.trim().toLowerCase()
 
   if (!term) {
@@ -151,10 +151,10 @@ const filteredAdmins = computed(() => {
   })
 })
 
-const pendingAdmin = computed(() => catalogStore.admins.find((admin) => admin.id === pendingAdminId.value) ?? null)
+const pendingAdmin = computed(() => userStore.admins.find((admin) => admin.id === pendingAdminId.value) ?? null)
 
 onMounted(() => {
-  catalogStore.fetchAdmins()
+  userStore.fetchAdmins()
 })
 
 function adminInitial(admin) {
@@ -167,7 +167,7 @@ async function confirmDelete() {
   }
 
   try {
-    await catalogStore.deleteAdmin(pendingAdmin.value.id)
+    await userStore.deleteAdmin(pendingAdmin.value.id)
     uiStore.success(`Se elimino ${pendingAdmin.value.username}.`, "Administrador eliminado")
     pendingAdminId.value = null
   } catch (error) {
@@ -175,3 +175,4 @@ async function confirmDelete() {
   }
 }
 </script>
+

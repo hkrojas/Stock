@@ -76,7 +76,6 @@
       </div>
 
       <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-4 border-t border-white/5">
-      <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-4 border-t border-white/5">
         <RouterLink :to="{ name: 'ordersMyInventory' }" class="btn btn-secondary w-full sm:w-auto px-10 !rounded-2xl border-white/10 hover:border-white/20">
           DESCARTAR
         </RouterLink>
@@ -101,14 +100,16 @@ import { computed, onMounted, reactive } from "vue"
 import { useRouter } from "vue-router"
 
 import { useAuthStore } from "@/stores/authStore"
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useBuildingStore } from "@/stores/buildingStore"
+import { useProductStore } from "@/stores/productStore"
 import { useInventoryStore } from "@/stores/inventoryStore"
 import { useUiStore } from "@/stores/uiStore"
 import { normalizeBuilding, normalizeProduct } from "@/utils/normalizers"
 
 const router = useRouter()
 const authStore = useAuthStore()
-const catalogStore = useCatalogStore()
+const buildingStore = useBuildingStore()
+const productStore = useProductStore()
 const inventoryStore = useInventoryStore()
 const uiStore = useUiStore()
 
@@ -118,8 +119,8 @@ const form = reactive({
   quantity: 1,
 })
 
-const buildingOptions = computed(() => catalogStore.buildings.map(normalizeBuilding))
-const productOptions = computed(() => catalogStore.products.map(normalizeProduct))
+const buildingOptions = computed(() => buildingStore.buildings.map(normalizeBuilding))
+const productOptions = computed(() => productStore.products.map(normalizeProduct))
 const selectedBuildingLabel = computed(() => buildingOptions.value.find((item) => String(item.id) === String(form.buildingId))?.name ?? "")
 
 async function submitForm() {
@@ -139,7 +140,7 @@ async function submitForm() {
 }
 
 onMounted(async () => {
-  await Promise.all([catalogStore.fetchBuildings(), catalogStore.fetchProducts()])
+  await Promise.all([buildingStore.fetchBuildings(), productStore.fetchProducts()])
   form.buildingId = buildingOptions.value[0] ? String(buildingOptions.value[0].id) : ""
   form.productId = productOptions.value[0] ? String(productOptions.value[0].id) : ""
 })

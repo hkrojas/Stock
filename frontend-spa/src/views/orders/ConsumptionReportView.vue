@@ -95,16 +95,16 @@
 <script setup>
 import { computed, onMounted, ref } from "vue"
 
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useBuildingStore } from "@/stores/buildingStore"
 import { useInventoryStore } from "@/stores/inventoryStore"
 import { assetUrl, defaultProductUrl, formatDate } from "@/utils/formatters"
 import { normalizeBuilding } from "@/utils/normalizers"
 
-const catalogStore = useCatalogStore()
+const buildingStore = useBuildingStore()
 const inventoryStore = useInventoryStore()
 const selectedBuildingId = ref("")
 
-const buildings = computed(() => catalogStore.buildings.map(normalizeBuilding))
+const buildings = computed(() => buildingStore.buildings.map(normalizeBuilding))
 const rows = computed(() =>
   inventoryStore.consumptionRows.map((row, index) => ({
     key: `${row.building_name}-${row.product_name}-${index}`,
@@ -128,6 +128,6 @@ function clearFilters() {
 }
 
 onMounted(() => {
-  Promise.all([catalogStore.fetchBuildings(), inventoryStore.fetchConsumptionReport()])
+  Promise.all([buildingStore.fetchBuildings(), inventoryStore.fetchConsumptionReport()])
 })
 </script>

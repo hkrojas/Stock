@@ -1,7 +1,6 @@
 import { ref } from "vue"
 import { defineStore } from "pinia"
-
-import apiClient from "@/utils/apiClient"
+import analyticsApi from "@/api/analytics.api"
 
 export const useDashboardStore = defineStore("dashboard", () => {
   const superadminDashboard = ref(null)
@@ -15,7 +14,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/analytics/superadmin")
+      const { data } = await analyticsApi.getSuperadminDashboard()
       superadminDashboard.value = data
       return data
     } catch (requestError) {
@@ -31,7 +30,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/analytics/manager")
+      const { data } = await analyticsApi.getManagerDashboard()
       managerDashboard.value = data
       return data
     } catch (requestError) {
@@ -47,7 +46,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/analytics/admin")
+      const { data } = await analyticsApi.getAdminDashboard()
       adminDashboard.value = data
       return data
     } catch (requestError) {
@@ -69,3 +68,4 @@ export const useDashboardStore = defineStore("dashboard", () => {
     fetchAdminDashboard,
   }
 })
+

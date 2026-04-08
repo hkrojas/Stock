@@ -182,7 +182,7 @@ import { useRoute, useRouter } from "vue-router"
 
 import EmptyState from "@/components/ui/EmptyState.vue"
 import AppModal from "@/components/ui/AppModal.vue"
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useBuildingStore } from "@/stores/buildingStore"
 import { useOrdersStore } from "@/stores/ordersStore"
 import { useUiStore } from "@/stores/uiStore"
 import { formatDate } from "@/utils/formatters"
@@ -190,7 +190,7 @@ import { normalizeBuilding, normalizeOrder } from "@/utils/normalizers"
 
 const route = useRoute()
 const router = useRouter()
-const catalogStore = useCatalogStore()
+const buildingStore = useBuildingStore()
 const ordersStore = useOrdersStore()
 const uiStore = useUiStore()
 
@@ -213,7 +213,7 @@ const statusOptions = [
   { value: "rejected", label: "Rechazado" },
 ]
 
-const buildings = computed(() => catalogStore.buildings.map(normalizeBuilding))
+const buildings = computed(() => buildingStore.buildings.map(normalizeBuilding))
 const orders = computed(() => ordersStore.orders.map(normalizeOrder))
 
 function statusLabel(status) {
@@ -312,6 +312,6 @@ async function confirmAction() {
 onMounted(async () => {
   filters.status = typeof route.query.status === "string" ? route.query.status : ""
   filters.buildingId = typeof route.query.buildingId === "string" ? route.query.buildingId : ""
-  await Promise.all([catalogStore.fetchBuildings(), loadOrders()])
+  await Promise.all([buildingStore.fetchBuildings(), loadOrders()])
 })
 </script>

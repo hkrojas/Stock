@@ -210,7 +210,7 @@ import { useRoute, useRouter } from "vue-router"
 
 import OrderItemsList from "@/components/orders/OrderItemsList.vue"
 import AppModal from "@/components/ui/AppModal.vue"
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useProductStore } from "@/stores/productStore"
 import { useInventoryStore } from "@/stores/inventoryStore"
 import { useOrdersStore } from "@/stores/ordersStore"
 import { useUiStore } from "@/stores/uiStore"
@@ -219,7 +219,7 @@ import { normalizeInventoryItem, normalizeOrder, normalizeProduct } from "@/util
 
 const route = useRoute()
 const router = useRouter()
-const catalogStore = useCatalogStore()
+const productStore = useProductStore()
 const inventoryStore = useInventoryStore()
 const ordersStore = useOrdersStore()
 const uiStore = useUiStore()
@@ -229,7 +229,7 @@ const categoryFilter = ref("")
 const productQuantities = reactive({})
 
 const order = computed(() => (ordersStore.currentOrder ? normalizeOrder(ordersStore.currentOrder) : null))
-const products = computed(() => catalogStore.products.map(normalizeProduct).filter((product) => product.active))
+const products = computed(() => productStore.products.map(normalizeProduct).filter((product) => product.active))
 const inventoryItems = computed(() => inventoryStore.items.map(normalizeInventoryItem))
 const criticalInventory = computed(() => inventoryItems.value.filter((item) => item.quantity <= item.product.stockMinimo))
 const categories = computed(() => [...new Set(products.value.map((product) => product.categoria).filter(Boolean))].sort())
@@ -283,7 +283,7 @@ const modalContent = computed(() => {
 })
 
 async function ensureOrder() {
-  await catalogStore.fetchProducts()
+  await productStore.fetchProducts()
 
   if (route.params.orderId === "new") {
     const buildingId = Number(route.query.buildingId)

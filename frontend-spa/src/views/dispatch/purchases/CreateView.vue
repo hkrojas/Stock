@@ -169,13 +169,13 @@
 import { computed, onMounted, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useProductStore } from "@/stores/productStore"
 import { useDispatchStore } from "@/stores/dispatchStore"
 import { useUiStore } from "@/stores/uiStore"
 import { normalizeProduct } from "@/utils/normalizers"
 
 const router = useRouter()
-const catalogStore = useCatalogStore()
+const productStore = useProductStore()
 const dispatchStore = useDispatchStore()
 const uiStore = useUiStore()
 
@@ -192,7 +192,7 @@ const selectorOpen = ref(false)
 const selectorQuery = ref("")
 const submitError = ref("")
 
-const products = computed(() => catalogStore.products.map(normalizeProduct))
+const products = computed(() => productStore.products.map(normalizeProduct))
 const filteredProducts = computed(() => {
   const query = selectorQuery.value.trim().toLowerCase()
   if (!query) {
@@ -229,7 +229,7 @@ async function resolveProductId(row) {
     return row.productId
   }
 
-  const created = await catalogStore.createProduct({
+  const created = await productStore.createProduct({
     name: row.name,
     sku: null,
     categoria: "General",
@@ -291,7 +291,7 @@ async function submitPurchase() {
 }
 
 onMounted(() => {
-  catalogStore.fetchProducts()
+  productStore.fetchProducts()
 })
 </script>
 

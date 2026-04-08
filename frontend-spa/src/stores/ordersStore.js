@@ -1,7 +1,6 @@
 import { ref } from "vue"
 import { defineStore } from "pinia"
-
-import apiClient from "@/utils/apiClient"
+import ordersApi from "@/api/orders.api"
 
 export const useOrdersStore = defineStore("orders", () => {
   const orders = ref([])
@@ -20,9 +19,9 @@ export const useOrdersStore = defineStore("orders", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/orders/", { params })
-      orders.value = data
-      return data
+      const { data: result } = await ordersApi.list(params)
+      orders.value = result
+      return result
     } catch (requestError) {
       error.value = requestError.message
       return null
@@ -36,9 +35,9 @@ export const useOrdersStore = defineStore("orders", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get(`/orders/${orderId}`)
-      currentOrder.value = data
-      return data
+      const { data: result } = await ordersApi.getById(orderId)
+      currentOrder.value = result
+      return result
     } catch (requestError) {
       error.value = requestError.message
       return null
@@ -53,9 +52,9 @@ export const useOrdersStore = defineStore("orders", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post("/orders/", { building_id: buildingId })
-      currentOrder.value = data
-      return data
+      const { data: result } = await ordersApi.create(buildingId)
+      currentOrder.value = result
+      return result
     } catch (requestError) {
       error.value = requestError.message
       throw requestError
@@ -70,7 +69,7 @@ export const useOrdersStore = defineStore("orders", () => {
     error.value = ""
 
     try {
-      await apiClient.post(`/orders/${orderId}/items`, payload)
+      await ordersApi.addItem(orderId, payload)
       return await fetchOrder(orderId)
     } catch (requestError) {
       error.value = requestError.message
@@ -86,7 +85,7 @@ export const useOrdersStore = defineStore("orders", () => {
     error.value = ""
 
     try {
-      await apiClient.delete(`/orders/${orderId}/items/${itemId}`)
+      await ordersApi.removeItem(orderId, itemId)
       return await fetchOrder(orderId)
     } catch (requestError) {
       error.value = requestError.message
@@ -102,7 +101,7 @@ export const useOrdersStore = defineStore("orders", () => {
     error.value = ""
 
     try {
-      await apiClient.post(`/orders/${orderId}/items/${itemId}/update`, payload)
+      await ordersApi.updateItem(orderId, itemId, payload)
       return await fetchOrder(orderId)
     } catch (requestError) {
       error.value = requestError.message
@@ -125,7 +124,7 @@ export const useOrdersStore = defineStore("orders", () => {
     error.value = ""
 
     try {
-      await apiClient.post(`/orders/${orderId}/${action}`)
+      await ordersApi.updateStatus(orderId, action)
       return await fetchOrder(orderId)
     } catch (requestError) {
       error.value = requestError.message
@@ -155,3 +154,4 @@ export const useOrdersStore = defineStore("orders", () => {
     updateOrderStatus,
   }
 })
+

@@ -1,7 +1,7 @@
 import { ref } from "vue"
 import { defineStore } from "pinia"
-
-import apiClient from "@/utils/apiClient"
+import dispatchApi from "@/api/dispatch.api"
+import purchasesApi from "@/api/purchases.api"
 
 export const useDispatchStore = defineStore("dispatch", () => {
   const pendingOrders = ref([])
@@ -23,7 +23,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/dispatch/pending-orders")
+      const { data } = await dispatchApi.getPendingOrders()
       pendingOrders.value = data
       return data
     } catch (requestError) {
@@ -40,7 +40,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post("/dispatch/consolidate", orderIds)
+      const { data } = await dispatchApi.consolidate(orderIds)
       return data
     } catch (requestError) {
       error.value = requestError.message
@@ -55,7 +55,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/dispatch/history")
+      const { data } = await dispatchApi.getHistory()
       history.value = data
       return data
     } catch (requestError) {
@@ -71,7 +71,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get(`/dispatch/batch/${batchId}`)
+      const { data } = await dispatchApi.getBatchDetail(batchId)
       currentBatch.value = data
       return data
     } catch (requestError) {
@@ -87,7 +87,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get(`/dispatch/batch/${batchId}/picking`)
+      const { data } = await dispatchApi.getPicking(batchId)
       currentPicking.value = data
       return data
     } catch (requestError) {
@@ -104,7 +104,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post(`/dispatch/batch/${batchId}/confirm`)
+      const { data } = await dispatchApi.confirmBatch(batchId)
       return data
     } catch (requestError) {
       error.value = requestError.message
@@ -120,9 +120,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post(`/dispatch/batch/${batchId}/reject-order/${orderId}`, null, {
-        params: rejectionNote ? { rejection_note: rejectionNote } : {},
-      })
+      const { data } = await dispatchApi.rejectOrder(batchId, orderId, rejectionNote)
       return data
     } catch (requestError) {
       error.value = requestError.message
@@ -136,13 +134,8 @@ export const useDispatchStore = defineStore("dispatch", () => {
     isExporting.value = true
     error.value = ""
 
-    const endpoint =
-      kind === "buildings"
-        ? `/dispatch/batch/${batchId}/export/buildings`
-        : `/dispatch/batch/${batchId}/export/consolidated`
-
     try {
-      const response = await apiClient.get(endpoint, { responseType: "blob" })
+      const response = await dispatchApi.exportBatch(batchId, kind)
       const header = response.headers["content-disposition"] ?? ""
       const filenameMatch = header.match(/filename=([^;]+)/i)
       const fallback = kind === "buildings" ? `distribucion_edificios_lote_${batchId}.pdf` : `consolidado_lote_${batchId}.pdf`
@@ -164,7 +157,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/purchases/")
+      const { data } = await purchasesApi.list()
       purchases.value = data
       return data
     } catch (requestError) {
@@ -180,7 +173,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get(`/purchases/${purchaseId}`)
+      const { data } = await purchasesApi.getById(purchaseId)
       currentPurchase.value = data
       return data
     } catch (requestError) {
@@ -197,7 +190,7 @@ export const useDispatchStore = defineStore("dispatch", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post("/purchases/", payload)
+      const { data } = await purchasesApi.create(payload)
       purchases.value = [data, ...purchases.value]
       return data
     } catch (requestError) {
@@ -235,3 +228,4 @@ export const useDispatchStore = defineStore("dispatch", () => {
     createPurchase,
   }
 })
+

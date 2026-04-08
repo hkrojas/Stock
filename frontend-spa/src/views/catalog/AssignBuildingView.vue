@@ -7,8 +7,8 @@
       :meta="{ label: 'Cobertura', value: `${filteredBuildings.length} edificios` }"
     />
 
-    <div v-if="catalogStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
-      {{ catalogStore.error }}
+    <div v-if="buildingStore.error || userStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
+      {{ buildingStore.error || userStore.error }}
     </div>
 
     <div class="grid gap-8 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -23,12 +23,12 @@
           <label class="label-premium">Buscar edificio</label>
           <input v-model="query" type="search" placeholder="Filtrar por nombre o direccion" class="input-field" />
         </div>
-        <button type="button" class="btn btn-primary w-full" :disabled="!selectedAdminId || !selectedBuildingIds.length || catalogStore.isAssigningBuildings" @click="handleAssign">
-          {{ catalogStore.isAssigningBuildings ? "Guardando..." : "Guardar asignacion" }}
+        <button type="button" class="btn btn-primary w-full" :disabled="!selectedAdminId || !selectedBuildingIds.length || buildingStore.isAssigning" @click="handleAssign">
+          {{ buildingStore.isAssigning ? "Guardando..." : "Guardar asignacion" }}
         </button>
       </div>
 
-      <div v-if="catalogStore.isLoading && !buildings.length" class="card text-text-secondary">
+      <div v-if="(buildingStore.isLoading || userStore.isLoading) && !buildings.length" class="card text-text-secondary">
         Cargando edificios...
       </div>
 
@@ -58,18 +58,20 @@
 import { computed, onMounted, ref } from "vue"
 
 import PageHeader from "@/components/page/PageHeader.vue"
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useBuildingStore } from "@/stores/buildingStore"
+import { useUserStore } from "@/stores/userStore"
 import { useUiStore } from "@/stores/uiStore"
 import { normalizeBuilding, normalizeUser } from "@/utils/normalizers"
 
-const catalogStore = useCatalogStore()
+const buildingStore = useBuildingStore()
+const userStore = useUserStore()
 const uiStore = useUiStore()
 const selectedAdminId = ref(null)
 const selectedBuildingIds = ref([])
 const query = ref("")
 
-const admins = computed(() => catalogStore.admins.map(normalizeUser).filter((admin) => admin.role === "admin"))
-const buildings = computed(() => catalogStore.buildings.map(normalizeBuilding))
+const admins = computed(() => userStore.users.map(normalizeUser).filter((admin) => admin.role === "admin"))
+const buildings = computed(() => buildingStore.buildings.map(normalizeBuilding))
 const filteredBuildings = computed(() => {
   if (!query.value.trim()) {
     return buildings.value
@@ -82,20 +84,20 @@ const filteredBuildings = computed(() => {
 })
 
 async function handleAssign() {
-  if (catalogStore.isAssigningBuildings) return
+  if (buildingStore.isAssigning) return
 
   try {
-    const result = await catalogStore.assignBuildings(selectedAdminId.value, selectedBuildingIds.value)
+    const result = await buildingStore.assignToAdmin(selectedAdminId.value, selectedBuildingIds.value)
     uiStore.success(result.message, "Asignacion actualizada")
     selectedBuildingIds.value = []
-    await Promise.all([catalogStore.fetchBuildings(), catalogStore.fetchAdmins("admin")])
+    await Promise.all([buildingStore.fetchBuildings(), userStore.fetchUsers("admin")])
   } catch (error) {
     uiStore.error(error.message, "No se pudo asignar edificios")
   }
 }
 
 onMounted(async () => {
-  await Promise.all([catalogStore.fetchAdmins("admin"), catalogStore.fetchBuildings()])
+  await Promise.all([userStore.fetchUsers("admin"), buildingStore.fetchBuildings()])
   selectedAdminId.value = admins.value[0]?.id ?? null
 })
 </script>

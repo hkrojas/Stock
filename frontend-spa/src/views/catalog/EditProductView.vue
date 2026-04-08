@@ -1,5 +1,5 @@
 <template>
-  <div v-if="catalogStore.isLoading && !product" class="card text-text-secondary">
+  <div v-if="productStore.isLoading && !product" class="card text-text-secondary">
     Cargando producto...
   </div>
 
@@ -101,14 +101,14 @@
 
         <div class="pt-6 flex flex-col md:flex-row gap-4 border-t border-white/10">
           <RouterLink :to="{ name: 'catalogWarehouse' }" class="btn btn-secondary flex-1">Descartar Cambios</RouterLink>
-          <button type="submit" class="btn btn-primary flex-1 shadow-2xl shadow-amber/10" :disabled="catalogStore.isSubmittingProduct">
-            <svg v-if="!catalogStore.isSubmittingProduct" class="w-5 h-5 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button type="submit" class="btn btn-primary flex-1 shadow-2xl shadow-amber/10" :disabled="productStore.isSaving">
+            <svg v-if="!productStore.isSaving" class="w-5 h-5 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
             </svg>
             <svg v-else class="w-5 h-5 mx-1 animate-spin" fill="none" stroke="currentColor" viewBox="2 2 20 20">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            {{ catalogStore.isSubmittingProduct ? "ACTUALIZANDO..." : "Actualizar Registro" }}
+            {{ productStore.isSaving ? "ACTUALIZANDO..." : "Actualizar Registro" }}
           </button>
         </div>
       </form>
@@ -120,14 +120,14 @@
 import { computed, onMounted, reactive, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useProductStore } from "@/stores/productStore"
 import { useUiStore } from "@/stores/uiStore"
 import { assetUrl, defaultProductUrl } from "@/utils/formatters"
 import { normalizeProduct } from "@/utils/normalizers"
 
 const route = useRoute()
 const router = useRouter()
-const catalogStore = useCatalogStore()
+const productStore = useProductStore()
 const uiStore = useUiStore()
 
 const submitError = ref("")
@@ -145,15 +145,15 @@ const form = reactive({
   active: true,
 })
 
-const product = computed(() => (catalogStore.currentProduct ? normalizeProduct(catalogStore.currentProduct) : null))
+const product = computed(() => (productStore.currentProduct ? normalizeProduct(productStore.currentProduct) : null))
 const productPreview = computed(() => assetUrl(form.imageUrl, defaultProductUrl))
 
 async function submitForm() {
-  if (catalogStore.isSubmittingProduct) return
+  if (productStore.isSaving) return
   submitError.value = ""
 
   try {
-    await catalogStore.updateProduct(route.params.productId, {
+    await productStore.updateProduct(route.params.productId, {
       name: form.name,
       sku: form.sku || null,
       categoria: form.category || "General",
@@ -178,7 +178,7 @@ async function submitForm() {
 }
 
 onMounted(async () => {
-  await catalogStore.fetchProduct(route.params.productId)
+  await productStore.fetchProduct(route.params.productId)
 
   if (product.value) {
     form.name = product.value.name
@@ -195,3 +195,4 @@ onMounted(async () => {
   }
 })
 </script>
+

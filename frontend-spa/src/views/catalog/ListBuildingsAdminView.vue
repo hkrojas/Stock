@@ -24,8 +24,8 @@
       </div>
     </div>
 
-    <div v-if="catalogStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
-      {{ catalogStore.error }}
+    <div v-if="buildingStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
+      {{ buildingStore.error }}
     </div>
 
     <div class="card !p-0 overflow-hidden border-white/10 shadow-2xl shadow-black/40">
@@ -103,7 +103,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="!catalogStore.isLoading && !filteredBuildings.length">
+            <tr v-if="!buildingStore.isLoading && !filteredBuildings.length">
               <td colspan="4" class="px-8 py-20 text-center">
                 <div class="flex flex-col items-center gap-4">
                   <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-white/10">
@@ -134,7 +134,7 @@
       :description="pendingBuilding ? `Confirmar desactivacion de ${pendingBuilding.name}. Si tiene pedidos asociados, el backend bloqueara la operacion.` : ''"
       confirm-label="Eliminar"
       confirm-variant="danger"
-      :loading="catalogStore.isDeletingBuilding"
+      :loading="buildingStore.isDeleting"
       @close="pendingBuildingId = null"
       @confirm="confirmDelete"
     />
@@ -145,16 +145,16 @@
 import { computed, onMounted, ref } from "vue"
 
 import AppModal from "@/components/ui/AppModal.vue"
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useBuildingStore } from "@/stores/buildingStore"
 import { useUiStore } from "@/stores/uiStore"
 import { normalizeBuilding } from "@/utils/normalizers"
 
-const catalogStore = useCatalogStore()
+const buildingStore = useBuildingStore()
 const uiStore = useUiStore()
 const query = ref("")
 const pendingBuildingId = ref(null)
 
-const buildings = computed(() => catalogStore.buildings.map(normalizeBuilding))
+const buildings = computed(() => buildingStore.buildings.map(normalizeBuilding))
 const filteredBuildings = computed(() => {
   const term = query.value.trim().toLowerCase()
 
@@ -169,7 +169,7 @@ const filteredBuildings = computed(() => {
 const pendingBuilding = computed(() => buildings.value.find((building) => building.id === pendingBuildingId.value) ?? null)
 
 onMounted(() => {
-  catalogStore.fetchBuildings()
+  buildingStore.fetchBuildings()
 })
 
 async function confirmDelete() {
@@ -178,7 +178,7 @@ async function confirmDelete() {
   }
 
   try {
-    await catalogStore.deleteBuilding(pendingBuilding.value.id)
+    await buildingStore.deleteBuilding(pendingBuilding.value.id)
     uiStore.success(`Se elimino ${pendingBuilding.value.name}.`, "Sede eliminada")
     pendingBuildingId.value = null
   } catch (error) {

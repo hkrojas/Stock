@@ -18,11 +18,11 @@
       </div>
     </div>
 
-    <div v-if="catalogStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
-      {{ catalogStore.error }}
+    <div v-if="buildingStore.error" class="card border border-rose-500/20 bg-rose-500/10 text-rose-200">
+      {{ buildingStore.error }}
     </div>
 
-    <div v-if="catalogStore.isLoading && !buildings.length" class="card text-text-muted">
+    <div v-if="buildingStore.isLoading && !buildings.length" class="card text-text-muted">
       Cargando sedes...
     </div>
 
@@ -119,17 +119,17 @@
 import { computed, onMounted } from "vue"
 import { useRouter } from "vue-router"
 
-import { useCatalogStore } from "@/stores/catalogStore"
+import { useBuildingStore } from "@/stores/buildingStore"
 import { useOrdersStore } from "@/stores/ordersStore"
 import { useUiStore } from "@/stores/uiStore"
 import { normalizeBuilding, normalizeOrder } from "@/utils/normalizers"
 
 const router = useRouter()
-const catalogStore = useCatalogStore()
+const buildingStore = useBuildingStore()
 const ordersStore = useOrdersStore()
 const uiStore = useUiStore()
 
-const buildings = computed(() => catalogStore.buildings.map(normalizeBuilding))
+const buildings = computed(() => buildingStore.buildings.map(normalizeBuilding))
 const draftBuildingIds = computed(() => {
   const ids = new Set()
 
@@ -154,6 +154,6 @@ async function startOrder(buildingId) {
 }
 
 onMounted(() => {
-  Promise.all([catalogStore.fetchBuildings(), ordersStore.fetchOrders({ status: "draft" })])
+  Promise.all([buildingStore.fetchBuildings(), ordersStore.fetchOrders({ status: "draft" })])
 })
 </script>

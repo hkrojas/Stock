@@ -1,7 +1,7 @@
 import { ref } from "vue"
 import { defineStore } from "pinia"
-
-import apiClient from "@/utils/apiClient"
+import inventoryApi from "@/api/inventory.api"
+import ordersApi from "@/api/orders.api"
 
 export const useInventoryStore = defineStore("inventory", () => {
   const items = ref([])
@@ -17,9 +17,7 @@ export const useInventoryStore = defineStore("inventory", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/inventory/", {
-        params: buildingId ? { building_id: buildingId } : {},
-      })
+      const { data } = await inventoryApi.list(buildingId)
       items.value = data
       return data
     } catch (requestError) {
@@ -36,7 +34,7 @@ export const useInventoryStore = defineStore("inventory", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post("/inventory/", payload)
+      const { data } = await inventoryApi.add(payload)
       return data
     } catch (requestError) {
       error.value = requestError.message
@@ -52,7 +50,7 @@ export const useInventoryStore = defineStore("inventory", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post(`/inventory/${itemId}/consume`, payload)
+      const { data } = await inventoryApi.consume(itemId, payload)
       items.value = items.value.map((item) => (item.id === data.id ? data : item))
       return data
     } catch (requestError) {
@@ -69,7 +67,7 @@ export const useInventoryStore = defineStore("inventory", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.post(`/inventory/${itemId}/adjust`, payload)
+      const { data } = await inventoryApi.adjust(itemId, payload)
       items.value = items.value.map((item) => (item.id === data.id ? data : item))
       return data
     } catch (requestError) {
@@ -85,9 +83,7 @@ export const useInventoryStore = defineStore("inventory", () => {
     error.value = ""
 
     try {
-      const { data } = await apiClient.get("/orders/consumption-report", {
-        params: buildingId ? { building_id: buildingId } : {},
-      })
+      const { data } = await ordersApi.getConsumptionReport(buildingId)
       consumptionRows.value = data
       return data
     } catch (requestError) {
@@ -113,3 +109,4 @@ export const useInventoryStore = defineStore("inventory", () => {
     fetchConsumptionReport,
   }
 })
+
