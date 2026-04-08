@@ -29,7 +29,22 @@ npm run build
 
 # Previsualizar el build de produccion
 npm run preview
+
+# Ejecutar tests E2E (Playwright)
+npm run test:e2e
+
+# Ejecutar tests E2E con UI interactiva
+npm run test:e2e:ui
 ```
+
+## Testing (Playwright)
+La suite de pruebas E2E está ubicada en el directorio `/tests`.
+- **Smoke Tests**: Verificacion basica de carga de paginas.
+- **Auth Flow**: Validacion de inicio de sesion (superboss/admin_juan).
+- **Catalog**: Creacion y edicion de productos.
+- **Orders**: Flujos operativos de gestion de stock.
+
+*Nota: Para ejecutar los tests localmente, asegurese de tener el backend corriendo y las dependencias de Playwright instaladas (`npx playwright install`).*
 
 ## Convenciones Criticas
 1. **Mutaciones**: Usar siempre el flag `isSubmitting` para controlar estados de carga en botones y formularios.

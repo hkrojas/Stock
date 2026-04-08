@@ -37,7 +37,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <input v-model="form.name" type="text" required autofocus placeholder="Juan Perez" class="input-field !pl-12">
+              <input data-testid="user-fullname" v-model="form.name" type="text" required autofocus placeholder="Juan Perez" class="input-field !pl-12">
             </div>
           </div>
 
@@ -47,7 +47,7 @@
               <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <span class="text-white/20 font-black group-focus-within:text-amber transition-colors">@</span>
               </div>
-              <input v-model="form.username" type="text" required placeholder="jperez_gh" class="input-field !pl-12 lowercase">
+              <input data-testid="user-username" v-model="form.username" type="text" required placeholder="jperez_gh" class="input-field !pl-12 lowercase">
             </div>
           </div>
         </div>
@@ -103,7 +103,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <input v-model="form.password" type="password" required placeholder="6+ caracteres" class="input-field !pl-12 tracking-widest">
+              <input data-testid="user-password" v-model="form.password" type="password" required placeholder="6+ caracteres" class="input-field !pl-12 tracking-widest">
             </div>
           </div>
 
@@ -115,14 +115,14 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <input v-model="form.confirmPassword" type="password" required placeholder="Repetir clave" class="input-field !pl-12 tracking-widest">
+              <input data-testid="user-confirm-password" v-model="form.confirmPassword" type="password" required placeholder="Repetir clave" class="input-field !pl-12 tracking-widest">
             </div>
           </div>
         </div>
 
         <div class="pt-6 flex flex-col md:flex-row gap-4 border-t border-white/10">
           <RouterLink :to="{ name: 'catalogAdmins' }" class="btn btn-secondary flex-1">Cancelar</RouterLink>
-          <button type="submit" class="btn btn-primary flex-1 shadow-2xl shadow-amber/10" :disabled="userStore.isSubmitting">
+          <button data-testid="user-submit" type="submit" class="btn btn-primary flex-1 shadow-2xl shadow-amber/10" :disabled="userStore.isSubmitting">
             <svg v-if="!userStore.isSubmitting" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>

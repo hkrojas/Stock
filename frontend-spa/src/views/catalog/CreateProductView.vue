@@ -31,13 +31,13 @@
         <form class="space-y-6" @submit.prevent="submitForm">
           <div class="space-y-2">
             <label class="label-premium">Nombre Comercial <span class="text-amber">*</span></label>
-            <input v-model="form.name" type="text" required placeholder="Ej: Jabon Liquido 5L Industrial" class="input-field font-bold">
+            <input data-testid="product-name" v-model="form.name" type="text" required placeholder="Ej: Jabon Liquido 5L Industrial" class="input-field font-bold">
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="label-premium">Codigo SKU</label>
-              <input v-model="form.sku" type="text" placeholder="Identificador unico" class="input-field uppercase tracking-wider">
+              <input data-testid="product-sku" v-model="form.sku" type="text" placeholder="Identificador unico" class="input-field uppercase tracking-wider">
             </div>
             <div class="space-y-2">
               <label class="label-premium">Unidad de Medida</label>
@@ -47,7 +47,7 @@
               <label class="label-premium">Precio Unitario (S/)</label>
               <div class="relative">
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-amber font-bold">S/</span>
-                <input v-model.number="form.price" type="number" min="0" step="0.01" class="input-field !pl-10 font-bold text-amber">
+                <input data-testid="product-price" v-model.number="form.price" type="number" min="0" step="0.01" class="input-field !pl-10 font-bold text-amber">
               </div>
             </div>
             <div class="space-y-2">
@@ -93,7 +93,7 @@
             <RouterLink :to="{ name: 'catalogWarehouse' }" class="btn btn-secondary flex-1 !h-[56px] !rounded-xl">
               <span class="font-bold text-[11px] tracking-widest uppercase">CANCELAR</span>
             </RouterLink>
-            <button type="submit" class="btn btn-primary flex-1 !h-[56px] !rounded-xl shadow-lg shadow-amber/10" :disabled="productStore.isSubmitting">
+            <button data-testid="product-submit" type="submit" class="btn btn-primary flex-1 !h-[56px] !rounded-xl shadow-lg shadow-amber/10" :disabled="productStore.isSubmitting">
               <svg v-if="!productStore.isSubmitting" class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
               </svg>
