@@ -93,7 +93,21 @@ Scope:
 Done when:
 - the SPA is structurally prepared for future mobile parity without pretending to be the mobile app itself
 
-## Critical Risks This Roadmap Must Reduce
+### Phase 6 — QA, Performance & Final Handover [DONE]
+Goal:
+ensure technical delivery, functional integrity, stable production build, and clean documentation for handover.
+
+Scope:
+- functional QA of critical flows
+- production build verification
+- performance quick wins (lazy loading)
+- technical handover documentation
+- residual risk identification
+
+Done when:
+- the SPA is stable, documented, and ready for official handover or further maintenance.
+
+## Critical Risks This Roadmap Has Reduced
 - stale session after token expiry
 - unauthorized route access through direct URL entry
 - duplicated error parsing across pages
